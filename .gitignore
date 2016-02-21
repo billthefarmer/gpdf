@@ -1,3 +1,11 @@
+# Gedcom files, text files and pdf files
+*.ged
+*.txt
+*.pdf
+
+# Emacs backups
+*~
+
 # Object files
 *.o
 *.ko
