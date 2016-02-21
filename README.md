@@ -21,3 +21,6 @@ platform that libHaru will build on.
 I discovered that Mingw32 does not contain `getline()`, which is a bit
 essential. I discovered an implementation online. This is not needed
 on linux and probably not on OSX either.
+
+To run on windows you will need to extricate libpng and zlib from
+Mingw32 and put them in the execution folder.
