@@ -18,6 +18,6 @@ output. This will build successfully after the build files are
 patched. The program is written in generic C, so should work on any
 platform that libHaru will build on.
 
-I discovered that Mingw32 does not contain getline(), which is a bit
+I discovered that Mingw32 does not contain `getline()`, which is a bit
 essential. I discovered an implementation online. This is not needed
 on linux and probably on OSX as well.
