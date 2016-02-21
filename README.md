@@ -20,4 +20,4 @@ platform that libHaru will build on.
 
 I discovered that Mingw32 does not contain `getline()`, which is a bit
 essential. I discovered an implementation online. This is not needed
-on linux and probably on OSX as well.
+on linux and probably not on OSX either.
