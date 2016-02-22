@@ -72,12 +72,12 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
     {
-	printf("Usage: %s [-w] [-p pagesize] [-f fontsize] <infile>\n\n",
+	fprintf(stderr, "Usage: %s [-w] [-p pagesize] [-f fontsize] <infile>\n\n",
 	       argv[0]);
-	printf("  -w - write text file and layout page\n");
-	printf("  -b - surnames in bold text\n");
-	printf("  -p - set page size A0 -- A4\n");
-	printf("  -f - set font size in 1/72nd inch\n");
+	fprintf(stderr, "  -w - write text file and layout page\n");
+	fprintf(stderr, "  -b - surnames in bold text\n");
+	fprintf(stderr, "  -p - set page size A0 -- A4\n");
+	fprintf(stderr, "  -f - set font size in 1/72nd inch\n");
 
 	return GPDF_ERROR;
     }
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
     if (result != GPDF_SUCCESS)
     {
-	printf("gpdf: Couldn't parse %s\n", argv[optind]);
+	fprintf(stderr, "gpdf: Couldn't parse %s\n", argv[optind]);
 	return GPDF_ERROR;
     }
 
@@ -478,43 +478,34 @@ int find_generations()
 	}
     }
 
-    // for (int i = 1; i < SIZE_INDS; i++)
-    // {
-    // 	if (inds[i].id > 0)
-    // 	{
-    // 	    // If male
+    return GPDF_SUCCESS;
+}
 
-    // 	    if (inds[i].sex[0] == 'M')
-    // 	    {
-    // 		// See if a wife has more generations
+int write_textfile()
+{
+    char filename[256];
+    FILE *textfile;
 
-    // 		for (int j = 0; j < SIZE_FMSS; j++)
-    // 		{
-    // 		    if ((inds[i].fams[j] != NULL) &&
-    // 			(inds[i].fams[j]->wife != NULL) &&
-    // 			(inds[i].fams[j]->wife->gens > inds[i].gens))
-    // 			inds[i].gens = inds[i].fams[j]->wife->gens;
-    // 		}
-    // 	    }
+    strcpy(filename, file);
+    strcat(filename, ".txt");
 
-    // 	    else
-    // 	    {
-    // 		// See if a husband has more generations
+    textfile = fopen(filename, "w");
 
-    // 		for (int j = 0; j < SIZE_FMSS; j++)
-    // 		{
-    // 		    if ((inds[i].fams[j] != NULL) &&
-    // 			(inds[i].fams[j]->husb != NULL) &&
-    // 			(inds[i].fams[j]->husb->gens > inds[i].gens))
-    // 			inds[i].gens = inds[i].fams[j]->husb->gens;
-    // 		}
-    // 	    }
+    if (textfile == NULL)
+    {
+	fprintf(stderr, "gpdf: cant't write to %s\n", filename);
+	return GPDF_ERROR;
+    }
 
-    // 	    // Calculate x position on page
+    for (int i = 1; i < SIZE_INDS; i++)
+    {
+	if (inds[i].id > 0)
+	{
+	    fprintf(textfile, "%2d %-36s 0  0\n", inds[i].id, inds[i].name);
+	}
+    }
 
-    // 	    inds[i].posn.x = gens - inds[i].gens;
-    // 	}
-    // }
+    fclose(textfile);
 
     return GPDF_SUCCESS;
 }
@@ -688,28 +679,12 @@ int print_pdf()
 
     if (writetext)
     {
-	FILE *textfile;
+	int result;
 
-	strcpy(filename, file);
-	strcat(filename, ".txt");
+	result = write_textfile();
 
-	textfile = fopen(filename, "w");
-
-	if (textfile == NULL)
-	{
-	    printf("gpdf: cant't write to %s\n", filename);
+	if (result != GPDF_SUCCESS)
 	    return GPDF_ERROR;
-	}
-
-	for (int i = 1; i < SIZE_INDS; i++)
-	{
-	    if (inds[i].id > 0)
-	    {
-		fprintf(textfile, "%2d %-36s 0  0\n", inds[i].id, inds[i].name);
-	    }
-	}
-
-	fclose(textfile);
     }
 
     strcpy(title, file);
@@ -722,7 +697,7 @@ int print_pdf()
     pdf = HPDF_New(error_handler, NULL);
     if (pdf == NULL)
     {
-        printf("gpdf: cannot create PdfDoc object\n");
+        fprintf(stderr, "gpdf: cannot create PdfDoc object\n");
         return GPDF_ERROR;
     }
 
