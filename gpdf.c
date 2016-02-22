@@ -51,11 +51,15 @@ int main(int argc, char *argv[])
 {
     int result;
 
+    // Check args
+
     if (argc < 2)
     {
 	printf("Usage: %s <infile> [args...]\n", argv[0]);
 	return GPDF_ERROR;
     }
+
+    // Parse the input file
 
     result = parse_gedcom_file(argv[1]);
 
@@ -65,7 +69,11 @@ int main(int argc, char *argv[])
 	return GPDF_ERROR;
     }
 
+    // Find generations in data
+
     find_generations();
+
+    // Print the tree
 
     print_pdf();
 
@@ -79,10 +87,14 @@ int parse_gedcom_file(char *filename)
     char *bufferp = buffer;
     size_t size = sizeof(buffer);
 
+    // Open the file
+
     infile = fopen(filename, "r");
 
     if (infile == NULL)
 	return GPDF_ERROR;
+
+    // Get lines
 
     while (getline(&bufferp, &size, infile) != -1)
     {
@@ -90,7 +102,11 @@ int parse_gedcom_file(char *filename)
 	char first[64] = {0};
 	char second[64] = {0};
 
+	// parse fields
+
 	sscanf(buffer, "%d %63s %63[0-9a-zA-Z /@-]", &type, first, second);
+
+	// Check record type
 
 	switch (type)
 	{
@@ -114,10 +130,14 @@ int parse_gedcom_file(char *filename)
 
 int object(char *first, char *second)
 {
+    // Head
+
     if (strcmp(first, "HEAD") == 0)
     {
 	stat = STAT_HEAD;
     }
+
+    // Individual
 
     else if (strcmp(second, "INDI") == 0)
     {
@@ -127,7 +147,10 @@ int object(char *first, char *second)
 	indp = &inds[id];
 	indp->id = id;
 	stat = STAT_INDI;
+	fmss = 0;
     }
+
+    // Family
 
     else if (strcmp(second, "FAM") == 0)
     {
@@ -147,12 +170,16 @@ int attrib(char *first, char *second)
 {
     switch (stat)
     {
+	// Head
+
     case STAT_HEAD:
 	if (strcmp(first, "FILE") == 0)
 	{
 	    strncpy(file, second, sizeof(file) - 1);
 	}
 	break;
+
+	// Individual
 
     case STAT_INDI:
 	if (strcmp(first, "NAME") == 0)
@@ -173,6 +200,7 @@ int attrib(char *first, char *second)
 
 	else if (strcmp(first, "DEAT") == 0)
 	{
+	    indp->deat.flag = TRUE;
 	    date = DATE_DEAT;
 	    plac = PLAC_DEAT;
 	}
@@ -210,6 +238,8 @@ int attrib(char *first, char *second)
 	}
 	break;
 
+	// Family
+
     case STAT_FAM:
 	if (strcmp(first, "HUSB") == 0)
 	{
@@ -243,6 +273,7 @@ int attrib(char *first, char *second)
 
 	else if (strcmp(first, "MARR") == 0)
 	{
+	    famp->marr.flag = TRUE;
 	    date = DATE_MARR;
 	    plac = PLAC_MARR;
 	}
@@ -256,6 +287,8 @@ int additn(char *first, char *second)
 {
     switch (stat)
     {
+	// Individual
+
     case STAT_INDI:
 	if (strcmp(first, "GIVN") == 0)
 	{
@@ -306,6 +339,8 @@ int additn(char *first, char *second)
 	}
 	break;
 
+	// Family
+
     case STAT_FAM:
 	{
 	    if (strcmp(first, "DATE") == 0)
@@ -329,45 +364,58 @@ int additn(char *first, char *second)
 		break;
 	    }
 	}
-	return GPDF_SUCCESS;
     }
+
+    return GPDF_SUCCESS;
 }
 
 int find_generations()
 {
+    // Iterate through the individuals
+
     for (int i = 1; i < SIZE_INDS; i++)
     {
 	if (inds[i].id > 0)
 	{
-	    // inds[i].gens = 0;
+	    // If they have parents
 
 	    if (inds[i].famc != NULL)
 	    {
 		int n = 0;
 		fam *famp = inds[i].famc;
 
+		// Follow the links
+
 		while (famp != NULL)
 		{
+		    // Husband
+
 		    if ((famp->husb != NULL) &&
 			(famp->husb->famc != NULL))
 			famp = famp->husb->famc;
 
+		    // Wife
+
 		    else if (famp->wife != NULL)
 			famp = famp->wife->famc;
 
+		    // Give up
+
 		    else
 			famp = NULL;
+
+		    // Count the generations
 
 		    n++;
 		}
 
 		inds[i].gens = n;
 
+		// Remember generations
+
 		if (gens < n)
 		    gens = n;
 	    }
-
-	    // printf("%s %d\n", inds[i].name, inds[i].gens);
 	}
     }
 
@@ -375,12 +423,12 @@ int find_generations()
     {
 	if (inds[i].id > 0)
 	{
-	    char *name;
-
-	    name = inds[i].name;
+	    // If male
 
 	    if (inds[i].sex[0] == 'M')
 	    {
+		// See if a wife has more generations
+
 		for (int j = 0; j < SIZE_FMSS; j++)
 		{
 		    if ((inds[i].fams[j] != NULL) &&
@@ -392,6 +440,8 @@ int find_generations()
 
 	    else
 	    {
+		// See if a husband has more generations
+
 		for (int j = 0; j < SIZE_FMSS; j++)
 		{
 		    if ((inds[i].fams[j] != NULL) &&
@@ -401,11 +451,16 @@ int find_generations()
 		}
 	    }
 
-	    printf("%s %d\n", inds[i].name, inds[i].gens);
+	    // Calculate x position on page
+
 	    inds[i].posn.x = gens - inds[i].gens;
 	}
     }
+
+    return GPDF_SUCCESS;
 }
+
+// Use helvetica
 
 #define FONT "Helvetica"
 #define BOLD "Helvetica-Bold"
@@ -413,13 +468,18 @@ int find_generations()
 int fs = SIZE_FONT;
 jmp_buf env;
 
+// Error handler from examples
+
 void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
-		   void *user_data)
+		   void *user_data __attribute__ ((unused)))
 {
-    printf ("ERROR: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no,
-                (HPDF_UINT)detail_no);
+    printf ("gpdf: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no,
+	    (HPDF_UINT)detail_no);
+
     longjmp(env, 1);
 }
+
+// Print individual info
 
 int print_indi(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 	       int x, int y, int id)
@@ -427,11 +487,15 @@ int print_indi(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
     HPDF_Page_SetFontAndSize(page, font, fs);
     HPDF_Page_BeginText(page);
 
+    // Name
+
     HPDF_Page_TextOut(page, x, y, inds[id].givn);
     HPDF_Page_ShowText(page, " ");
-    HPDF_Page_SetFontAndSize(page, bold, 12);
+    HPDF_Page_SetFontAndSize(page, bold, fs);
     HPDF_Page_ShowText(page, inds[id].surn);
     HPDF_Page_SetFontAndSize(page, font, fs);
+
+    // Birth
 
     if ((inds[id].birt.date[0] != '\0') &&
 	(inds[id].birt.plac[0] != '\0'))
@@ -457,6 +521,8 @@ int print_indi(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 	HPDF_Page_ShowText(page, inds[id].birt.plac);	
     }
 
+    // Marriages
+
     for (int i = 0; i < SIZE_FMSS; i++)
     {
 	if (inds[id].fams[i] != NULL)
@@ -480,14 +546,22 @@ int print_indi(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		HPDF_Page_ShowText(page, famp->marr.date);	
 	    }
 
-	    else
+	    else if (famp->marr.plac[0] != '\0')
 	    {
 		HPDF_Page_MoveTextPos(page, 0, -fs);
 		HPDF_Page_ShowTextNextLine(page, "m  ");
 		HPDF_Page_ShowText(page, famp->marr.plac);	
 	    }
+
+	    else if (famp->marr.flag)
+	    {
+		HPDF_Page_MoveTextPos(page, 0, -fs);
+		HPDF_Page_ShowTextNextLine(page, "m");
+	    }
 	}
     }
+
+    // Death
 
     if ((inds[id].deat.date[0] != '\0') &&
 	(inds[id].deat.plac[0] != '\0'))
@@ -513,8 +587,18 @@ int print_indi(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 	HPDF_Page_ShowText(page, inds[id].deat.plac);	
     }
 
+    else if (inds[id].deat.flag)
+    {
+	HPDF_Page_MoveTextPos(page, 0, -fs);
+	HPDF_Page_ShowTextNextLine(page, "d");
+    }
+
     HPDF_Page_EndText(page);
+
+    return GPDF_SUCCESS;
 }
+
+// Print the chart
 
 int print_pdf()
 {
@@ -525,11 +609,9 @@ int print_pdf()
     HPDF_REAL tw;
     HPDF_REAL height;
     HPDF_REAL width;
-    HPDF_UINT i;
 
     char filename[256];
     char title[256];
-    char *ext;
 
     strcpy(title, file);
     title[0] = toupper(title[0]);
@@ -560,8 +642,9 @@ int print_pdf()
 
     /* Print the lines of the page. */
     HPDF_Page_SetLineWidth(page, 0.6);
-    HPDF_Page_Rectangle(page, 10, 10, width - 20, height - 20);
-    HPDF_Page_Rectangle(page, width - 210, 10, 200, 22);
+    HPDF_Page_Rectangle(page, SIZE_MARG, SIZE_MARG,
+			width - (2 * SIZE_MARG), height - (2 * SIZE_MARG));
+    HPDF_Page_Rectangle(page, width - 210, SIZE_MARG, 200, 22);
     HPDF_Page_Stroke(page);
 
     /* Print the title of the page (with positioning center). */
@@ -574,23 +657,28 @@ int print_pdf()
     HPDF_Page_TextOut(page, (width - 110) - tw / 2, 14, title);
     HPDF_Page_EndText(page);
 
+    // Horizontal slots on the page
+
     int slots[gens + 1];
     for (int i = 0; i <= gens; i++)
 	slots[i] = 0;
 
-    int slot = width / gens;
-    HPDF_Page_SetFontAndSize(page, font, fs);
+    int slot = (width - 40) / (gens + 1);
     for (int i = 1; i < SIZE_INDS; i++)
     {
 	if (inds[i].id > 0)
 	{
-	    // int x = inds[i].posn.x * slot;
-	    // int y = (height - 30) - (50 * slots[inds[i].posn.x]);
+	    int x = (2 * SIZE_MARG) + (inds[i].posn.x * slot);
+	    int y = (height - (2 * SIZE_MARG) - fs) -
+		(fs * 6 * slots[inds[i].posn.x]++);
 
-	    // print_indi(page, font, bold, x, y, inds[i].id);
+	    print_indi(page, font, bold, x, y, inds[i].id);
 	}
     }
 
-    remove("test.pdf");
+    // Save file
+
     HPDF_SaveToFile(pdf, "test.pdf");
+
+    return GPDF_SUCCESS;
 }

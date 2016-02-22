@@ -2,7 +2,7 @@
 #
 
 GCC    = gcc
-CFLAGS = -g -W -std=gnu99 -Iinclude -Llibs -lhpdf
+CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -Llibs -lhpdf
 
 all:	gpdf
 

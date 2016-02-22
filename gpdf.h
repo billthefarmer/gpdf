@@ -26,6 +26,11 @@
 #define GPDF_H
 
 typedef enum
+    {FALSE,
+     TRUE}
+    gpdf_bool_t;
+
+typedef enum
     {SIZE_INDS = 256,
      SIZE_FAMS = 128,
      SIZE_NAME = 64,
@@ -42,7 +47,8 @@ typedef enum
 
 typedef enum
     {SIZE_PAGE = 4,
-     SIZE_FONT = 12}
+     SIZE_FONT = 8,
+     SIZE_MARG = 10}
     gpdf_page_t;
 
 typedef enum
@@ -79,6 +85,7 @@ typedef enum
 
 typedef struct
 {
+    int  flag;
     char date[SIZE_DATE];
     char plac[SIZE_PLAC];
 } birt, deat, marr;
