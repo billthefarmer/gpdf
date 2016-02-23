@@ -48,7 +48,7 @@ fam  fams[SIZE_FAMS] = {};
 indi *indp;
 fam  *famp;
 
-int stat = STAT_NONE;
+int state = STATE_NONE;
 int date = DATE_NONE;
 int plac = PLAC_NONE;
 
@@ -64,6 +64,9 @@ char *fontsize;
 
 char file[SIZE_NAME];
 
+int fs = SIZE_FONT;
+jmp_buf env;
+
 int main(int argc, char *argv[])
 {
     int c;
@@ -77,7 +80,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "  -w - write text file and layout page\n");
 	fprintf(stderr, "  -b - surnames in bold text\n");
 	fprintf(stderr, "  -p - set page size A0 -- A4\n");
-	fprintf(stderr, "  -f - set font size in 1/72nd inch\n");
+	fprintf(stderr, "  -f - set font size in 1/72 inch\n");
 
 	return GPDF_ERROR;
     }
@@ -142,9 +145,9 @@ int main(int argc, char *argv[])
 int parse_gedcom_file(char *filename)
 {
     FILE *infile = NULL;;
-    char buffer[256];
-    char *bufferp = buffer;
-    size_t size = sizeof(buffer);
+    char line[256];
+    char *linep = line;
+    size_t size = sizeof(line);
 
     // Open the file
 
@@ -155,7 +158,7 @@ int parse_gedcom_file(char *filename)
 
     // Get lines
 
-    while (getline(&bufferp, &size, infile) != -1)
+    while (getline(&linep, &size, infile) != -1)
     {
 	int type;
 	char first[64] = {0};
@@ -163,7 +166,7 @@ int parse_gedcom_file(char *filename)
 
 	// parse fields
 
-	sscanf(buffer, "%d %63s %63[0-9a-zA-Z /@-]", &type, first, second);
+	sscanf(line, "%d %63s %63[0-9a-zA-Z /@-]", &type, first, second);
 
 	// Check record type
 
@@ -193,7 +196,7 @@ int object(char *first, char *second)
 
     if (strcmp(first, "HEAD") == 0)
     {
-	stat = STAT_HEAD;
+	state = STATE_HEAD;
     }
 
     // Individual
@@ -205,7 +208,7 @@ int object(char *first, char *second)
 	sscanf(first, "@I%d@", &id);
 	indp = &inds[id];
 	indp->id = id;
-	stat = STAT_INDI;
+	state = STATE_INDI;
 	fmss = 0;
     }
 
@@ -218,7 +221,7 @@ int object(char *first, char *second)
 	sscanf(first, "@F%d@", &id);
 	famp = &fams[id];
 	famp->id = id;
-	stat = STAT_FAM;
+	state = STATE_FAM;
 	chln = 0;
    }
 
@@ -227,11 +230,11 @@ int object(char *first, char *second)
 
 int attrib(char *first, char *second)
 {
-    switch (stat)
+    switch (state)
     {
 	// Head
 
-    case STAT_HEAD:
+    case STATE_HEAD:
 	if (strcmp(first, "FILE") == 0)
 	{
 	    strncpy(file, second, sizeof(file) - 1);
@@ -240,7 +243,7 @@ int attrib(char *first, char *second)
 
 	// Individual
 
-    case STAT_INDI:
+    case STATE_INDI:
 	if (strcmp(first, "NAME") == 0)
 	{
 	    strncpy(indp->name, second, SIZE_NAME - 1);
@@ -299,7 +302,7 @@ int attrib(char *first, char *second)
 
 	// Family
 
-    case STAT_FAM:
+    case STATE_FAM:
 	if (strcmp(first, "HUSB") == 0)
 	{
 	    int id;
@@ -336,6 +339,13 @@ int attrib(char *first, char *second)
 	    date = DATE_MARR;
 	    plac = PLAC_MARR;
 	}
+
+	else if (strcmp(first, "DIV") == 0)
+	{
+	    famp->div.yes = true;
+	    date = DATE_DIV;
+	    plac = PLAC_DIV;
+	}
 	break;
     }
 
@@ -344,11 +354,11 @@ int attrib(char *first, char *second)
 
 int additn(char *first, char *second)
 {
-    switch (stat)
+    switch (state)
     {
 	// Individual
 
-    case STAT_INDI:
+    case STATE_INDI:
 	if (strcmp(first, "GIVN") == 0)
 	{
 	    strncpy(indp->givn, second, SIZE_GIVN - 1);
@@ -400,7 +410,7 @@ int additn(char *first, char *second)
 
 	// Family
 
-    case STAT_FAM:
+    case STATE_FAM:
 	{
 	    if (strcmp(first, "DATE") == 0)
 	    {
@@ -408,6 +418,10 @@ int additn(char *first, char *second)
 		{
 		case DATE_MARR:
 		    strncpy(famp->marr.date, second, SIZE_DATE - 1);
+		    break;
+
+		case DATE_DIV:
+		    strncpy(famp->div.date, second, SIZE_DATE - 1);
 		    break;
 		}
 	    }
@@ -418,6 +432,10 @@ int additn(char *first, char *second)
 		{
 		case PLAC_MARR:
 		    strncpy(famp->marr.plac, second, SIZE_PLAC - 1);
+		    break;
+
+		case PLAC_DIV:
+		    strncpy(famp->div.plac, second, SIZE_PLAC - 1);
 		    break;
 		}
 		break;
@@ -489,7 +507,7 @@ int write_textfile()
     strcpy(filename, file);
     strcat(filename, ".txt");
 
-    textfile = fopen(filename, "w");
+    textfile = fopen(filename, "wx");
 
     if (textfile == NULL)
     {
@@ -501,7 +519,7 @@ int write_textfile()
     {
 	if (inds[i].id > 0)
 	{
-	    fprintf(textfile, "%2d %-36s 0  0\n", inds[i].id, inds[i].name);
+	    fprintf(textfile, "%3d 0 0 %s\n", inds[i].id, inds[i].name);
 	}
     }
 
@@ -510,13 +528,44 @@ int write_textfile()
     return GPDF_SUCCESS;
 }
 
-// Use helvetica
+int read_textfile()
+{
+    char filename[256];
+    char line[256];
+    char *linep = line;
+    size_t size = sizeof(line);
+    FILE *textfile;
 
-#define FONT "Helvetica"
-#define BOLD "Helvetica-Bold"
+    strcpy(filename, file);
+    strcat(filename, ".txt");
 
-int fs = SIZE_FONT;
-jmp_buf env;
+    textfile = fopen(filename, "r");
+
+    if (textfile == NULL)
+    {
+	fprintf(stderr, "gpdf: can't read %s\n", filename);
+	return GPDF_ERROR;
+    }
+
+    while (getline(&linep, &size, textfile) != -1)
+    {
+	int id, x, y;
+
+	// parse fields
+
+	sscanf(line, " %d %d %d", &id, &x, &y);
+
+	if (id > 0)
+	{
+	    inds[id].posn.x = x;
+	    inds[id].posn.y = y;
+	}
+    }
+
+    fclose(textfile);
+
+    return GPDF_SUCCESS;
+}
 
 // Error handler from examples
 
@@ -531,133 +580,317 @@ void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
 
 // Print individual info
 
-int print_indi(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
-	       int fs, int x, int y, int id)
+int print_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
+		      int fs, int height, int slotwidth, int slotheight)
 {
     HPDF_Page_SetFontAndSize(page, font, fs);
     HPDF_Page_BeginText(page);
 
-    // Name
-
-    HPDF_Page_TextOut(page, x, y, inds[id].givn);
-    HPDF_Page_ShowText(page, " ");
-    HPDF_Page_SetFontAndSize(page, bold, fs);
-    HPDF_Page_ShowText(page, inds[id].surn);
-    HPDF_Page_SetFontAndSize(page, font, fs);
-
-    // Birth
-
-    if ((inds[id].birt.date[0] != '\0') &&
-	(inds[id].birt.plac[0] != '\0'))
+    for (int i = 0; i < SIZE_INDS; i++)
     {
-	HPDF_Page_MoveToNextLine(page);
-	HPDF_Page_MoveTextPos(page, 0, -fs);
-	HPDF_Page_ShowText(page, "b   ");
-	HPDF_Page_ShowText(page, inds[id].birt.date);
-	HPDF_Page_ShowText(page, " ");
-	HPDF_Page_ShowText(page, inds[id].birt.plac);
-    }
-
-    else if (inds[id].birt.date[0] != '\0')
-    {
-	HPDF_Page_MoveToNextLine(page);
-	HPDF_Page_MoveTextPos(page, 0, -fs);
-	HPDF_Page_ShowText(page, "b   ");
-	HPDF_Page_ShowText(page, inds[id].birt.date);	
-    }
-
-    else if (inds[id].birt.plac[0] != '\0')
-    {
-	HPDF_Page_MoveToNextLine(page);
-	HPDF_Page_MoveTextPos(page, 0, -fs);
-	HPDF_Page_ShowText(page, "b   ");
-	HPDF_Page_ShowText(page, inds[id].birt.plac);	
-    }
-
-    // Marriages
-
-    if (inds[id].sex[0] == 'F')
-    {
-	for (int i = 0; i < SIZE_FMSS; i++)
+	if (inds[i].id > 0)
 	{
-	    if (inds[id].fams[i] != NULL)
+	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
 	    {
-		fam *famp = inds[id].fams[i];
+		int x = (SIZE_MARG * 4) + (inds[i].posn.x * slotwidth);
+		int y = height - (SIZE_MARG * 2) -
+		    (inds[i].posn.y * slotheight);
 
-		if ((famp->marr.date[0] != '\0') &&
-		    (famp->marr.plac[0] != '\0'))
+		// Name
+
+		HPDF_Page_TextOut(page, x, y, inds[i].givn);
+		if (inds[i].nick[0] != '\0')
 		{
-		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
-		    HPDF_Page_ShowText(page, "m  ");
-		    HPDF_Page_ShowText(page, famp->marr.date);
+		    HPDF_Page_ShowText(page, " '");
+		    HPDF_Page_ShowText(page, inds[i].nick);
+		    HPDF_Page_ShowText(page, "' ");
+		}
+
+		else
 		    HPDF_Page_ShowText(page, " ");
-		    HPDF_Page_ShowText(page, famp->marr.plac);
-		}
 
-		else if (famp->marr.date[0] != '\0')
+		HPDF_Page_SetFontAndSize(page, bold, fs);
+		HPDF_Page_ShowText(page, inds[i].surn);
+		HPDF_Page_SetFontAndSize(page, font, fs);
+
+		// Birth
+
+		if ((inds[i].birt.date[0] != '\0') &&
+		    (inds[i].birt.plac[0] != '\0'))
 		{
 		    HPDF_Page_MoveToNextLine(page);
 		    HPDF_Page_MoveTextPos(page, 0, -fs);
-		    HPDF_Page_ShowText(page, "m  ");
-		    HPDF_Page_ShowText(page, famp->marr.date);	
+		    HPDF_Page_ShowText(page, "b   ");
+		    HPDF_Page_ShowText(page, inds[i].birt.date);
+		    HPDF_Page_ShowText(page, " ");
+		    HPDF_Page_ShowText(page, inds[i].birt.plac);
 		}
 
-		else if (famp->marr.plac[0] != '\0')
+		else if (inds[i].birt.date[0] != '\0')
 		{
 		    HPDF_Page_MoveToNextLine(page);
 		    HPDF_Page_MoveTextPos(page, 0, -fs);
-		    HPDF_Page_ShowTextNextLine(page, "m  ");
-		    HPDF_Page_ShowText(page, famp->marr.plac);	
+		    HPDF_Page_ShowText(page, "b   ");
+		    HPDF_Page_ShowText(page, inds[i].birt.date);	
 		}
 
-		// else if (famp->marr.yes)
-		// {
-		//     HPDF_Page_MoveToNextLine(page);
-		//     HPDF_Page_MoveTextPos(page, 0, -fs);
-		//     HPDF_Page_ShowText(page, "m");
-		// }
+		else if (inds[i].birt.plac[0] != '\0')
+		{
+		    HPDF_Page_MoveToNextLine(page);
+		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_ShowText(page, "b   ");
+		    HPDF_Page_ShowText(page, inds[i].birt.plac);	
+		}
+
+		// Occupation
+
+		if (inds[i].occu[0] != '\0')
+		{
+		    HPDF_Page_MoveToNextLine(page);
+		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_ShowText(page, "o   ");
+		    HPDF_Page_ShowText(page, inds[i].occu);
+		}
+
+		// Marriages and divorces
+
+		if (inds[i].sex[0] == 'F')
+		{
+		    for (int i = 0; i < SIZE_FMSS; i++)
+		    {
+			if (inds[i].fams[i] != NULL)
+			{
+			    fam *famp = inds[i].fams[i];
+
+			    if ((famp->marr.date[0] != '\0') &&
+				(famp->marr.plac[0] != '\0'))
+			    {
+				HPDF_Page_MoveToNextLine(page);
+				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_ShowText(page, "m  ");
+				HPDF_Page_ShowText(page, famp->marr.date);
+				HPDF_Page_ShowText(page, " ");
+				HPDF_Page_ShowText(page, famp->marr.plac);
+			    }
+
+			    else if (famp->marr.date[0] != '\0')
+			    {
+				HPDF_Page_MoveToNextLine(page);
+				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_ShowText(page, "m  ");
+				HPDF_Page_ShowText(page, famp->marr.date);	
+			    }
+
+			    else if (famp->marr.plac[0] != '\0')
+			    {
+				HPDF_Page_MoveToNextLine(page);
+				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_ShowTextNextLine(page, "m  ");
+				HPDF_Page_ShowText(page, famp->marr.plac);	
+			    }
+
+			    // else if (famp->marr.yes)
+			    // {
+			    //     HPDF_Page_MoveToNextLine(page);
+			    //     HPDF_Page_MoveTextPos(page, 0, -fs);
+			    //     HPDF_Page_ShowText(page, "m");
+			    // }
+
+			    if ((famp->div.date[0] != '\0') &&
+				(famp->div.plac[0] != '\0'))
+			    {
+				HPDF_Page_MoveToNextLine(page);
+				HPDF_Page_MoveTextPos(page, 0, -fs);
+				if ((famp->marr.date[0] == '\0') &&
+				    (famp->marr.plac[0] == '\0'))
+				    HPDF_Page_ShowText(page, "m, dv ");
+
+				else
+				    HPDF_Page_ShowText(page, "dv ");
+				HPDF_Page_ShowText(page, famp->div.date);
+				HPDF_Page_ShowText(page, " ");
+				HPDF_Page_ShowText(page, famp->div.plac);
+			    }
+
+			    else if (famp->div.date[0] != '\0')
+			    {
+				HPDF_Page_MoveToNextLine(page);
+				HPDF_Page_MoveTextPos(page, 0, -fs);
+				if ((famp->marr.date[0] == '\0') &&
+				    (famp->marr.plac[0] == '\0'))
+				    HPDF_Page_ShowText(page, "m, dv ");
+
+				else
+				    HPDF_Page_ShowText(page, "dv ");
+				HPDF_Page_ShowText(page, famp->div.date);	
+			    }
+
+			    else if (famp->div.plac[0] != '\0')
+			    {
+				HPDF_Page_MoveToNextLine(page);
+				HPDF_Page_MoveTextPos(page, 0, -fs);
+				if ((famp->marr.date[0] == '\0') &&
+				    (famp->marr.plac[0] == '\0'))
+				    HPDF_Page_ShowText(page, "m, dv ");
+
+				else
+				    HPDF_Page_ShowTextNextLine(page, "dv ");
+				HPDF_Page_ShowText(page, famp->div.plac);	
+			    }
+
+			    // else if (famp->div.yes)
+			    // {
+			    //     HPDF_Page_ShowText(page, ", d");
+			    // }
+			}
+
+			// Death
+
+			if ((inds[i].deat.date[0] != '\0') &&
+			    (inds[i].deat.plac[0] != '\0'))
+			{
+			    HPDF_Page_MoveToNextLine(page);
+			    HPDF_Page_MoveTextPos(page, 0, -fs);
+			    HPDF_Page_ShowText(page, "d   ");
+			    HPDF_Page_ShowText(page, inds[i].deat.date);
+			    HPDF_Page_ShowText(page, " ");
+			    HPDF_Page_ShowText(page, inds[i].deat.plac);
+			}
+
+			else if (inds[i].deat.date[0] != '\0')
+			{
+			    HPDF_Page_MoveToNextLine(page);
+			    HPDF_Page_MoveTextPos(page, 0, -fs);
+			    HPDF_Page_ShowText(page, "d   ");
+			    HPDF_Page_ShowText(page, inds[i].deat.date);	
+			}
+
+			else if (inds[i].deat.plac[0] != '\0')
+			{
+			    HPDF_Page_MoveToNextLine(page);
+			    HPDF_Page_MoveTextPos(page, 0, -fs);
+			    HPDF_Page_ShowText(page, "d   ");
+			    HPDF_Page_ShowText(page, inds[i].deat.plac);	
+			}
+
+			// else if (inds[i].deat.yes)
+			// {
+			// 	HPDF_Page_MoveToNextLine(page);
+			// 	HPDF_Page_MoveTextPos(page, 0, -fs);
+			// 	HPDF_Page_ShowTextNextLine(page, "d");
+			// }
+		    }
+		}
 	    }
 	}
     }
 
-    // Death
-
-    if ((inds[id].deat.date[0] != '\0') &&
-	(inds[id].deat.plac[0] != '\0'))
-    {
-	HPDF_Page_MoveToNextLine(page);
-	HPDF_Page_MoveTextPos(page, 0, -fs);
-	HPDF_Page_ShowText(page, "d   ");
-	HPDF_Page_ShowText(page, inds[id].deat.date);
-	HPDF_Page_ShowText(page, " ");
-	HPDF_Page_ShowText(page, inds[id].deat.plac);
-    }
-
-    else if (inds[id].deat.date[0] != '\0')
-    {
-	HPDF_Page_MoveToNextLine(page);
-	HPDF_Page_MoveTextPos(page, 0, -fs);
-	HPDF_Page_ShowText(page, "d   ");
-	HPDF_Page_ShowText(page, inds[id].deat.date);	
-    }
-
-    else if (inds[id].deat.plac[0] != '\0')
-    {
-	HPDF_Page_MoveToNextLine(page);
-	HPDF_Page_MoveTextPos(page, 0, -fs);
-	HPDF_Page_ShowText(page, "d   ");
-	HPDF_Page_ShowText(page, inds[id].deat.plac);	
-    }
-
-    // else if (inds[id].deat.yes)
-    // {
-    // 	HPDF_Page_MoveToNextLine(page);
-    // 	HPDF_Page_MoveTextPos(page, 0, -fs);
-    // 	HPDF_Page_ShowTextNextLine(page, "d");
-    // }
-
     HPDF_Page_EndText(page);
+
+    return GPDF_SUCCESS;
+}
+
+// Print family lines
+
+int print_family_lines(HPDF_Page page, int height,
+		       int slotwidth, int slotheight)
+{
+    for (int i = 0; i < SIZE_INDS; i++)
+    {
+	if (inds[i].id > 0)
+	{
+	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
+	    {
+		int x = (SIZE_MARG * 4) + (inds[i].posn.x * slotwidth);
+		int y = height - (SIZE_MARG * 2) -
+		    (inds[i].posn.y * slotheight);
+
+		if (inds[i].famc != NULL)
+		{
+		    HPDF_Page_MoveTo(page, x + slotwidth - (SIZE_MARG * 2), y);
+		    HPDF_Page_LineTo(page, x + slotwidth - SIZE_MARG, y);
+		    HPDF_Page_Stroke(page);
+		}
+
+		if (inds[i].fams[0] != NULL)
+		{
+		    HPDF_Page_MoveTo(page, x, y);
+		    HPDF_Page_LineTo(page, x - SIZE_MARG, y);
+		    HPDF_Page_Stroke(page);
+		}
+	    }
+	}
+    }
+
+    for (int i = 1; i < SIZE_FAMS; i++)
+    {
+	if ((fams[i].wife != NULL) &&
+	    ((fams[i].wife->posn.x > 0) || (fams[i].wife->posn.y > 0)))
+	{
+	    int mx = (SIZE_MARG * 3) + (fams[i].wife->posn.x * slotwidth);
+	    int my = height - (SIZE_MARG * 2) -
+		(fams[i].wife->posn.y * slotheight);
+
+	    for (int j = 1; j < SIZE_CHIL; j++)
+	    {
+		if ((fams[i].chil[j] != NULL) &&
+		    ((fams[i].chil[j]->posn.x > 0) ||
+		     (fams[i].chil[j]->posn.y > 0)))
+		{
+		    int cx = (SIZE_MARG * 3) + slotwidth +
+			(fams[i].chil[j]->posn.x * slotwidth);
+		    int cy = height - (SIZE_MARG * 2) -
+			(fams[i].chil[j]->posn.y * slotheight);
+
+		    HPDF_Page_MoveTo(page, mx, my);
+		    HPDF_Page_LineTo(page, cx, cy);
+		    HPDF_Page_Stroke(page);
+		}
+	    }
+	}
+
+	if ((fams[i].husb != NULL) &&
+	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
+	{
+	    int fx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
+	    int fy = height - (SIZE_MARG * 2) -
+		(fams[i].husb->posn.y * slotheight);
+
+	    for (int j = 1; j < SIZE_CHIL; j++)
+	    {
+		if ((fams[i].chil[j] != NULL) &&
+		    ((fams[i].chil[j]->posn.x > 0) ||
+		     (fams[i].chil[j]->posn.y > 0)))
+		{
+		    int cx = (SIZE_MARG * 3) + slotwidth +
+			(fams[i].chil[j]->posn.x * slotwidth);
+		    int cy = height - (SIZE_MARG * 2) -
+			(fams[i].chil[j]->posn.y * slotheight);
+
+		    HPDF_Page_MoveTo(page, fx, fy);
+		    HPDF_Page_LineTo(page, cx, cy);
+		    HPDF_Page_Stroke(page);
+		}
+	    }
+	}
+
+	if ((fams[i].wife != NULL) && (fams[i].husb != NULL) &&
+	    ((fams[i].wife->posn.x > 0) || (fams[i].wife->posn.y > 0)) &&
+	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
+	{
+	    int mx = (SIZE_MARG * 3) + (fams[i].wife->posn.x * slotwidth);
+	    int my = height - (SIZE_MARG * 2) -
+		(fams[i].wife->posn.y * slotheight);
+
+	    int fx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
+	    int fy = height - (SIZE_MARG * 2) -
+		(fams[i].husb->posn.y * slotheight);
+
+	    HPDF_Page_MoveTo(page, fx, fy);
+	    HPDF_Page_LineTo(page, mx, my);
+	    HPDF_Page_Stroke(page);
+	}
+    }
 
     return GPDF_SUCCESS;
 }
@@ -669,8 +902,7 @@ int print_pdf()
     HPDF_Doc  pdf;
     HPDF_Page page;
     HPDF_Font font;
-    HPDF_Font bold __attribute__ ((unused));
-    HPDF_REAL tw;
+    HPDF_Font bold;
     HPDF_REAL height;
     HPDF_REAL width;
 
@@ -707,36 +939,22 @@ int print_pdf()
         return GPDF_ERROR;
     }
 
-    /* Add a new page object. */
+    // Add a new page object
     page = HPDF_AddPage(pdf);
     HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A3, HPDF_PAGE_LANDSCAPE);
 
     height = HPDF_Page_GetHeight(page);
     width  = HPDF_Page_GetWidth(page);
 
-    /* Print the lines of the page. */
+    // Print the border of the page
     HPDF_Page_SetLineWidth(page, 0.6);
     HPDF_Page_Rectangle(page, SIZE_MARG, SIZE_MARG,
 			width - (2 * SIZE_MARG), height - (2 * SIZE_MARG));
 
-    font = HPDF_GetFont(pdf, "Helvetica", NULL);
-    bold = HPDF_GetFont(pdf, "Helvetica-Bold", NULL);
+    font = HPDF_GetFont(pdf, FONT, NULL);
+    bold = HPDF_GetFont(pdf, BOLD, NULL);
 
-    if (!writetext)
-    {
-	HPDF_Page_Rectangle(page, width - 210, SIZE_MARG, 200, 22);
-	HPDF_Page_Stroke(page);
-
-	/* Print the title of the page (with positioning center). */
-	HPDF_Page_SetFontAndSize(page, font, 18);
-
-	tw = HPDF_Page_TextWidth(page, title);
-	HPDF_Page_BeginText(page);
-	HPDF_Page_TextOut(page, (width - 110) - tw / 2, 14, title);
-	HPDF_Page_EndText(page);
-    }
-
-    else
+    if (writetext)
     {
 	// Horizontal slots on the page
 
@@ -771,13 +989,41 @@ int print_pdf()
 		char s[16];
 
 		int x = (3 * SIZE_MARG) + (j * slotsize);
-		int y = (6 * SIZE_MARG) + (i * fs * 4);
+		int y = height - (6 * SIZE_MARG) + (i * fs * 4);
 		sprintf(s, "%d, %d", j, i);
 		HPDF_Page_TextOut(page, x, y, s);
 	    }
 	}
 
 	HPDF_Page_EndText(page);
+    }
+
+    else
+    {
+	int result;
+	HPDF_REAL tw;
+
+	result = read_textfile();
+
+	if (result != GPDF_SUCCESS)
+	    return GPDF_ERROR;
+
+	HPDF_Page_Rectangle(page, width - 210, SIZE_MARG, 200, 22);
+	HPDF_Page_Stroke(page);
+
+	// Print the title of the page (with positioning center).
+	HPDF_Page_SetFontAndSize(page, font, 18);
+
+	tw = HPDF_Page_TextWidth(page, title);
+	HPDF_Page_BeginText(page);
+	HPDF_Page_TextOut(page, (width - 110) - tw / 2, 14, title);
+	HPDF_Page_EndText(page);
+
+	int slotheight = fs * 6;
+	int slotwidth = (width - (SIZE_MARG * 6)) / (gens + 1);
+
+	print_individuals(page, font, bold, fs, height, slotwidth, slotheight);
+	print_family_lines(page, height, slotwidth, slotheight);
     }
 
     // Save file

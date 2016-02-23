@@ -25,6 +25,11 @@
 #ifndef GPDF_H
 #define GPDF_H
 
+// Use helvetica
+
+#define FONT "Helvetica"
+#define BOLD "Helvetica-Bold"
+
 typedef enum
     {SIZE_INDS = 256,
      SIZE_FAMS = 128,
@@ -42,7 +47,7 @@ typedef enum
 
 typedef enum
     {SIZE_PAGE = 4,
-     SIZE_FONT = 12,
+     SIZE_FONT = 8,
      SIZE_MARG = 10}
     gpdf_page_t;
 
@@ -58,16 +63,17 @@ typedef enum
     gpdf_type_t;
 
 typedef enum
-    {STAT_HEAD,
-     STAT_INDI,
-     STAT_FAM,
-     STAT_NONE = -1}
-    gpdf_stat_t;
+    {STATE_HEAD,
+     STATE_INDI,
+     STATE_FAM,
+     STATE_NONE = -1}
+    gpdf_state_t;
 
 typedef enum
     {DATE_BIRT,
      DATE_DEAT,
      DATE_MARR,
+     DATE_DIV,
      DATE_NONE = -1}
     gpdf_date_t;
 
@@ -75,6 +81,7 @@ typedef enum
     {PLAC_BIRT,
      PLAC_DEAT,
      PLAC_MARR,
+     PLAC_DIV,
      PLAC_NONE = -1}
     gpdf_plac_t;
 
@@ -83,7 +90,7 @@ typedef struct
     bool yes;
     char date[SIZE_DATE];
     char plac[SIZE_PLAC];
-} birt, deat, marr;
+} birt, deat, marr, divc;
 
 typedef struct
 {
@@ -101,10 +108,10 @@ typedef struct indi_s
     char surn[SIZE_GIVN];
     char marn[SIZE_NAME];
     char nick[SIZE_NICK];
+    char occu[SIZE_OCCU];
     char sex[SIZE_SEX];
     birt birt;
     deat deat;
-    char occu[SIZE_OCCU];
     struct fam_s *famc;
     struct fam_s *fams[SIZE_FMSS];
 } indi;
@@ -115,6 +122,7 @@ typedef struct fam_s
     indi *husb;
     indi *wife;
     marr marr;
+    divc div;
     indi *chil[SIZE_CHIL];
 } fam;
 
