@@ -2,7 +2,10 @@
 ## GEDCOM genealogy pdf chart creation
 
 Read and parse a GEDCOM format text file into memory and produce a
-large format pdf output file.
+large format pdf output file. This program was developed and tested
+using GEDCOM output from the Webtrees geneology software, which uses
+numeric identifiers. Other GEDCOM files on the web use text
+identifiers which won't work.
 
 I initially attempted to use the
 [GEDCOM parser library](http://gedcom-parse.sourceforge.net) for

@@ -144,6 +144,7 @@ int parse_gedcom_file(char *filename)
     char line[256];
     char *linep = line;
     size_t size = sizeof(line);
+    int status;
 
     // Open the file
 
@@ -169,20 +170,27 @@ int parse_gedcom_file(char *filename)
 	switch (type)
 	{
 	case TYPE_OBJECT:
-	    object(first, second);
+	    status = object(first, second);
 	    break;
 
 	case TYPE_ATTR:
-	    attrib(first, second);
+	    status = attrib(first, second);
 	    break;
 
 	case TYPE_ADDN:
-	    additn(first, second);
+	    status = additn(first, second);
 	    break;
+	}
+
+	if (status != GPDF_SUCCESS)
+	{
+	    fclose(infile);
+	    return GPDF_ERROR;
 	}
     }
 
     fclose(infile);
+
     return GPDF_SUCCESS;
 }
 
@@ -199,9 +207,17 @@ int object(char *first, char *second)
 
     else if (strcmp(second, "INDI") == 0)
     {
-	int id;
+	int id = 0;
 
 	sscanf(first, "@I%d@", &id);
+
+	if (id == 0)
+	{
+	    fprintf(stderr, "gpdf: Non-numeric identifier '%s'not supported\n",
+		    first);
+	    return GPDF_ERROR;
+	}
+
 	indp = &inds[id];
 	indp->id = id;
 	state = STATE_INDI;
@@ -212,9 +228,17 @@ int object(char *first, char *second)
 
     else if (strcmp(second, "FAM") == 0)
     {
-	int id;
+	int id = 0;
 
 	sscanf(first, "@F%d@", &id);
+
+	if (id == 0)
+	{
+	    fprintf(stderr, "Non-numeric identifier '%s'not supported\n",
+		    first);
+	    return GPDF_ERROR;
+	}
+
 	famp = &fams[id];
 	famp->id = id;
 	state = STATE_FAM;
@@ -956,9 +980,6 @@ int draw_pdf()
     title[0] = toupper(title[0]);
     strcat(title, " Family Tree");
 
-    strcpy(filename, file);
-    strcat(filename, ".pdf");
-    
     pdf = HPDF_New(error_handler, NULL);
     if (pdf == NULL)
     {
@@ -991,10 +1012,12 @@ int draw_pdf()
     {
 	// Horizontal slots on the page
 
-	float slotsize = (width - (SIZE_MARG * 4)) / (gens + 1);
+	float slotwidth = (width - (SIZE_MARG * 4)) / (gens + 1);
+	float slotheight = fs * 6;
+
 	for (int i = 1; i < gens + 1; i++)
 	{
-	    float x = (2 * SIZE_MARG) + (i * slotsize);
+	    float x = (2 * SIZE_MARG) + (i * slotwidth);
 
 	    HPDF_Page_MoveTo(page, x, SIZE_MARG);
 	    HPDF_Page_LineTo(page, x, height - SIZE_MARG);
@@ -1002,10 +1025,10 @@ int draw_pdf()
 
 	// Vertical slots on the page
 
-	int slots = (height - (SIZE_MARG * 4)) / (fs * 4);
+	int slots = (height - (SIZE_MARG * 6)) / slotheight;
 	for (int i = 1; i < slots; i++)
 	{
-	    float y = (4 * SIZE_MARG) + (i * fs * 4);
+	    float y = (4 * SIZE_MARG) + (i * slotheight);
 
 	    HPDF_Page_MoveTo(page, SIZE_MARG, y);
 	    HPDF_Page_LineTo(page, width - SIZE_MARG, y);
@@ -1021,8 +1044,8 @@ int draw_pdf()
 	    {
 		char s[16];
 
-		float x = (3 * SIZE_MARG) + (j * slotsize);
-		float y = height - (6 * SIZE_MARG) + (i * fs * 4);
+		float x = (3 * SIZE_MARG) + (j * slotwidth);
+		float y = height - (6 * SIZE_MARG) - (i * slotheight);
 		sprintf(s, "%d, %d", j, i);
 		HPDF_Page_TextOut(page, x, y, s);
 	    }
@@ -1060,6 +1083,15 @@ int draw_pdf()
     }
 
     // Save file
+
+    if (!writetext)
+    {
+	strcpy(filename, file);
+	strcat(filename, ".pdf");
+    }
+
+    else
+	strcpy(filename, "slots.pdf");
 
     HPDF_SaveToFile(pdf, filename);
 
