@@ -26,7 +26,9 @@ To run on windows you will need to extricate libpng and zlib from
 Mingw32 and put them in the execution folder.
 
 To use the program, use the -w switch for the initial run like this:
-``` $ gpdf -w <infile.ged> ```
+```
+$ gpdf -w <infile.ged>
+```
 This will produce an A3 pdf file with a grid of slots with x, y
 coordinates, and a text file with a list of ids, two zeros and the
 name for each individual in the file. Like this:
