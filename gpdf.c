@@ -657,11 +657,11 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 
 		if (inds[i].sex[0] == 'F')
 		{
-		    for (int i = 0; i < SIZE_FMSS; i++)
+		    for (int j = 0; j < SIZE_FMSS; j++)
 		    {
-			if (inds[i].fams[i] != NULL)
+			if (inds[i].fams[j] != NULL)
 			{
-			    fam *famp = inds[i].fams[i];
+			    fam *famp = inds[i].fams[j];
 
 			    if ((famp->marr.date[0] != '\0') &&
 				(famp->marr.plac[0] != '\0'))
@@ -744,44 +744,44 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			    //     HPDF_Page_ShowText(page, ", d");
 			    // }
 			}
-
-			// Death
-
-			if ((inds[i].deat.date[0] != '\0') &&
-			    (inds[i].deat.plac[0] != '\0'))
-			{
-			    HPDF_Page_MoveToNextLine(page);
-			    HPDF_Page_MoveTextPos(page, 0, -fs);
-			    HPDF_Page_ShowText(page, "d   ");
-			    HPDF_Page_ShowText(page, inds[i].deat.date);
-			    HPDF_Page_ShowText(page, " ");
-			    HPDF_Page_ShowText(page, inds[i].deat.plac);
-			}
-
-			else if (inds[i].deat.date[0] != '\0')
-			{
-			    HPDF_Page_MoveToNextLine(page);
-			    HPDF_Page_MoveTextPos(page, 0, -fs);
-			    HPDF_Page_ShowText(page, "d   ");
-			    HPDF_Page_ShowText(page, inds[i].deat.date);	
-			}
-
-			else if (inds[i].deat.plac[0] != '\0')
-			{
-			    HPDF_Page_MoveToNextLine(page);
-			    HPDF_Page_MoveTextPos(page, 0, -fs);
-			    HPDF_Page_ShowText(page, "d   ");
-			    HPDF_Page_ShowText(page, inds[i].deat.plac);	
-			}
-
-			// else if (inds[i].deat.yes)
-			// {
-			// 	HPDF_Page_MoveToNextLine(page);
-			// 	HPDF_Page_MoveTextPos(page, 0, -fs);
-			// 	HPDF_Page_ShowTextNextLine(page, "d");
-			// }
 		    }
 		}
+
+		// Death
+
+		if ((inds[i].deat.date[0] != '\0') &&
+		    (inds[i].deat.plac[0] != '\0'))
+		{
+		    HPDF_Page_MoveToNextLine(page);
+		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_ShowText(page, "d   ");
+		    HPDF_Page_ShowText(page, inds[i].deat.date);
+		    HPDF_Page_ShowText(page, " ");
+		    HPDF_Page_ShowText(page, inds[i].deat.plac);
+		}
+
+		else if (inds[i].deat.date[0] != '\0')
+		{
+		    HPDF_Page_MoveToNextLine(page);
+		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_ShowText(page, "d   ");
+		    HPDF_Page_ShowText(page, inds[i].deat.date);	
+		}
+
+		else if (inds[i].deat.plac[0] != '\0')
+		{
+		    HPDF_Page_MoveToNextLine(page);
+		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_ShowText(page, "d   ");
+		    HPDF_Page_ShowText(page, inds[i].deat.plac);	
+		}
+
+		// else if (inds[i].deat.yes)
+		// {
+		// 	HPDF_Page_MoveToNextLine(page);
+		// 	HPDF_Page_MoveTextPos(page, 0, -fs);
+		// 	HPDF_Page_ShowTextNextLine(page, "d");
+		// }
 	    }
 	}
     }
