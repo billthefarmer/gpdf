@@ -24,3 +24,17 @@ on linux and probably not on OSX either.
 
 To run on windows you will need to extricate libpng and zlib from
 Mingw32 and put them in the execution folder.
+
+To use the program, use the -w switch for the initial run like this:
+``` $ gpdf -w <infile.ged> ```
+This will produce an A3 pdf file with a grid of slots with x, y
+coordinates, and a text file with a list of ids, two zeros and the
+name for each individual in the file. Like this:
+```
+1  0 0 Jane /Doe/
+2  0 0 John /Doe/
+...
+```
+Fill in the x, y coordinates for each individual in the file and run
+the program again without the -w switch. This will produce a pdf file
+with the chart, overwriting the grid.
