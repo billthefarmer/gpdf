@@ -135,9 +135,9 @@ int main(int argc, char *argv[])
 
     find_generations();
 
-    // Print the tree
+    // Draw the tree
 
-    print_pdf();
+    draw_pdf();
 
     return GPDF_SUCCESS;
 }
@@ -549,11 +549,12 @@ int read_textfile()
 
     while (getline(&linep, &size, textfile) != -1)
     {
-	int id, x, y;
+	int id;
+	float x, y;
 
 	// parse fields
 
-	sscanf(line, " %d %d %d", &id, &x, &y);
+	sscanf(line, " %d %f %f", &id, &x, &y);
 
 	if (id > 0)
 	{
@@ -578,10 +579,10 @@ void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
     longjmp(env, 1);
 }
 
-// Print individual info
+// Draw individual info
 
-int print_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
-		      int fs, int height, int slotwidth, int slotheight)
+int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
+		      int fs, float height, float slotwidth, float slotheight)
 {
     HPDF_Page_SetFontAndSize(page, font, fs);
     HPDF_Page_BeginText(page);
@@ -592,8 +593,8 @@ int print_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 	{
 	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
 	    {
-		int x = (SIZE_MARG * 4) + (inds[i].posn.x * slotwidth);
-		int y = height - (SIZE_MARG * 2) -
+		float x = (SIZE_MARG * 4) + (inds[i].posn.x * slotwidth);
+		float y = height - (SIZE_MARG * 2) -
 		    (inds[i].posn.y * slotheight);
 
 		// Name
@@ -790,19 +791,21 @@ int print_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
     return GPDF_SUCCESS;
 }
 
-// Print family lines
+// Draw family lines
 
-int print_family_lines(HPDF_Page page, int height,
-		       int slotwidth, int slotheight)
+int draw_family_lines(HPDF_Page page, float height,
+		       float slotwidth, float slotheight)
 {
+    // Draw individual famc and fams connections
+
     for (int i = 0; i < SIZE_INDS; i++)
     {
 	if (inds[i].id > 0)
 	{
 	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
 	    {
-		int x = (SIZE_MARG * 4) + (inds[i].posn.x * slotwidth);
-		int y = height - (SIZE_MARG * 2) -
+		float x = (SIZE_MARG * 4) + (inds[i].posn.x * slotwidth);
+		float y = height - (SIZE_MARG * 2) -
 		    (inds[i].posn.y * slotheight);
 
 		if (inds[i].famc != NULL)
@@ -822,72 +825,78 @@ int print_family_lines(HPDF_Page page, int height,
 	}
     }
 
+    // Draw lines from wife to chilren
+
     for (int i = 1; i < SIZE_FAMS; i++)
     {
 	if ((fams[i].wife != NULL) &&
 	    ((fams[i].wife->posn.x > 0) || (fams[i].wife->posn.y > 0)))
 	{
-	    int mx = (SIZE_MARG * 3) + (fams[i].wife->posn.x * slotwidth);
-	    int my = height - (SIZE_MARG * 2) -
+	    float wx = (SIZE_MARG * 3) + (fams[i].wife->posn.x * slotwidth);
+	    float wy = height - (SIZE_MARG * 2) -
 		(fams[i].wife->posn.y * slotheight);
 
-	    for (int j = 1; j < SIZE_CHIL; j++)
+	    for (int j = 1; j < SIZE_CHLN; j++)
 	    {
 		if ((fams[i].chil[j] != NULL) &&
 		    ((fams[i].chil[j]->posn.x > 0) ||
 		     (fams[i].chil[j]->posn.y > 0)))
 		{
-		    int cx = (SIZE_MARG * 3) + slotwidth +
+		    float cx = (SIZE_MARG * 3) + slotwidth +
 			(fams[i].chil[j]->posn.x * slotwidth);
-		    int cy = height - (SIZE_MARG * 2) -
+		    float cy = height - (SIZE_MARG * 2) -
 			(fams[i].chil[j]->posn.y * slotheight);
 
-		    HPDF_Page_MoveTo(page, mx, my);
+		    HPDF_Page_MoveTo(page, wx, wy);
 		    HPDF_Page_LineTo(page, cx, cy);
 		    HPDF_Page_Stroke(page);
 		}
 	    }
 	}
 
-	if ((fams[i].husb != NULL) &&
-	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
-	{
-	    int fx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
-	    int fy = height - (SIZE_MARG * 2) -
-		(fams[i].husb->posn.y * slotheight);
+	// Draw lines from husband to children
 
-	    for (int j = 1; j < SIZE_CHIL; j++)
-	    {
-		if ((fams[i].chil[j] != NULL) &&
-		    ((fams[i].chil[j]->posn.x > 0) ||
-		     (fams[i].chil[j]->posn.y > 0)))
-		{
-		    int cx = (SIZE_MARG * 3) + slotwidth +
-			(fams[i].chil[j]->posn.x * slotwidth);
-		    int cy = height - (SIZE_MARG * 2) -
-			(fams[i].chil[j]->posn.y * slotheight);
+	// if ((fams[i].husb != NULL) &&
+	//     ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
+	// {
+	//     float hx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
+	//     float hy = height - (SIZE_MARG * 2) -
+	// 	(fams[i].husb->posn.y * slotheight);
 
-		    HPDF_Page_MoveTo(page, fx, fy);
-		    HPDF_Page_LineTo(page, cx, cy);
-		    HPDF_Page_Stroke(page);
-		}
-	    }
-	}
+	//     for (int j = 1; j < SIZE_CHLN; j++)
+	//     {
+	// 	if ((fams[i].chil[j] != NULL) &&
+	// 	    ((fams[i].chil[j]->posn.x > 0) ||
+	// 	     (fams[i].chil[j]->posn.y > 0)))
+	// 	{
+	// 	    float cx = (SIZE_MARG * 3) + slotwidth +
+	// 		(fams[i].chil[j]->posn.x * slotwidth);
+	// 	    float cy = height - (SIZE_MARG * 2) -
+	// 		(fams[i].chil[j]->posn.y * slotheight);
+
+	// 	    HPDF_Page_MoveTo(page, hx, hy);
+	// 	    HPDF_Page_LineTo(page, cx, cy);
+	// 	    HPDF_Page_Stroke(page);
+	// 	}
+	//     }
+	// }
+
+	// Draw lines from wife to husband
 
 	if ((fams[i].wife != NULL) && (fams[i].husb != NULL) &&
 	    ((fams[i].wife->posn.x > 0) || (fams[i].wife->posn.y > 0)) &&
 	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
 	{
-	    int mx = (SIZE_MARG * 3) + (fams[i].wife->posn.x * slotwidth);
-	    int my = height - (SIZE_MARG * 2) -
+	    float wx = (SIZE_MARG * 3) + (fams[i].wife->posn.x * slotwidth);
+	    float wy = height - (SIZE_MARG * 2) -
 		(fams[i].wife->posn.y * slotheight);
 
-	    int fx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
-	    int fy = height - (SIZE_MARG * 2) -
+	    float hx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
+	    float hy = height - (SIZE_MARG * 2) -
 		(fams[i].husb->posn.y * slotheight);
 
-	    HPDF_Page_MoveTo(page, fx, fy);
-	    HPDF_Page_LineTo(page, mx, my);
+	    HPDF_Page_MoveTo(page, hx, hy);
+	    HPDF_Page_LineTo(page, wx, wy);
 	    HPDF_Page_Stroke(page);
 	}
     }
@@ -895,9 +904,9 @@ int print_family_lines(HPDF_Page page, int height,
     return GPDF_SUCCESS;
 }
 
-// Print the chart
+// Draw the chart
 
-int print_pdf()
+int draw_pdf()
 {
     HPDF_Doc  pdf;
     HPDF_Page page;
@@ -946,7 +955,7 @@ int print_pdf()
     height = HPDF_Page_GetHeight(page);
     width  = HPDF_Page_GetWidth(page);
 
-    // Print the border of the page
+    // Draw the border of the page
     HPDF_Page_SetLineWidth(page, 0.6);
     HPDF_Page_Rectangle(page, SIZE_MARG, SIZE_MARG,
 			width - (2 * SIZE_MARG), height - (2 * SIZE_MARG));
@@ -958,10 +967,10 @@ int print_pdf()
     {
 	// Horizontal slots on the page
 
-	int slotsize = (width - (SIZE_MARG * 4)) / (gens + 1);
+	float slotsize = (width - (SIZE_MARG * 4)) / (gens + 1);
 	for (int i = 1; i < gens + 1; i++)
 	{
-	    int x = (2 * SIZE_MARG) + (i * slotsize);
+	    float x = (2 * SIZE_MARG) + (i * slotsize);
 
 	    HPDF_Page_MoveTo(page, x, SIZE_MARG);
 	    HPDF_Page_LineTo(page, x, height - SIZE_MARG);
@@ -972,7 +981,7 @@ int print_pdf()
 	int slots = (height - (SIZE_MARG * 4)) / (fs * 4);
 	for (int i = 1; i < slots; i++)
 	{
-	    int y = (4 * SIZE_MARG) + (i * fs * 4);
+	    float y = (4 * SIZE_MARG) + (i * fs * 4);
 
 	    HPDF_Page_MoveTo(page, SIZE_MARG, y);
 	    HPDF_Page_LineTo(page, width - SIZE_MARG, y);
@@ -988,8 +997,8 @@ int print_pdf()
 	    {
 		char s[16];
 
-		int x = (3 * SIZE_MARG) + (j * slotsize);
-		int y = height - (6 * SIZE_MARG) + (i * fs * 4);
+		float x = (3 * SIZE_MARG) + (j * slotsize);
+		float y = height - (6 * SIZE_MARG) + (i * fs * 4);
 		sprintf(s, "%d, %d", j, i);
 		HPDF_Page_TextOut(page, x, y, s);
 	    }
@@ -1011,7 +1020,7 @@ int print_pdf()
 	HPDF_Page_Rectangle(page, width - 210, SIZE_MARG, 200, 22);
 	HPDF_Page_Stroke(page);
 
-	// Print the title of the page (with positioning center).
+	// Draw the title of the page (with positioning center).
 	HPDF_Page_SetFontAndSize(page, font, 18);
 
 	tw = HPDF_Page_TextWidth(page, title);
@@ -1019,11 +1028,11 @@ int print_pdf()
 	HPDF_Page_TextOut(page, (width - 110) - tw / 2, 14, title);
 	HPDF_Page_EndText(page);
 
-	int slotheight = fs * 6;
-	int slotwidth = (width - (SIZE_MARG * 6)) / (gens + 1);
+	float slotheight = fs * 6;
+	float slotwidth = (width - (SIZE_MARG * 6)) / (gens + 1);
 
-	print_individuals(page, font, bold, fs, height, slotwidth, slotheight);
-	print_family_lines(page, height, slotwidth, slotheight);
+	draw_individuals(page, font, bold, fs, height, slotwidth, slotheight);
+	draw_family_lines(page, height, slotwidth, slotheight);
     }
 
     // Save file

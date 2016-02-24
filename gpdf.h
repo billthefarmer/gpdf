@@ -40,7 +40,7 @@ typedef enum
      SIZE_OCCU = 32,
      SIZE_NICK = 16,
      SIZE_DATE = 16,
-     SIZE_CHIL = 16,
+     SIZE_CHLN = 16,
      SIZE_FMSS = 4,
      SIZE_SEX  = 4}
     gpdf_size_t;
@@ -94,7 +94,7 @@ typedef struct
 
 typedef struct
 {
-    int x, y;
+    float x, y;
 } coord;
 
 typedef struct indi_s
@@ -123,14 +123,14 @@ typedef struct fam_s
     indi *wife;
     marr marr;
     divc div;
-    indi *chil[SIZE_CHIL];
+    indi *chil[SIZE_CHLN];
 } fam;
 
 // Functions
 
 int parse_gedcom_file(char *);
 int find_generations();
-int print_pdf();
+int draw_pdf();
 int object(char *, char *);
 int attrib(char *, char *);
 int additn(char *, char *);
