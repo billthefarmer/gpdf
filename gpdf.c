@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
 	fprintf(stderr, "Usage: %s [-w] [-p pagesize] [-f fontsize] <infile>\n\n",
-	       argv[0]);
+		argv[0]);
 	fprintf(stderr, "  -w - write text file and layout page\n");
 	fprintf(stderr, "  -b - surnames in bold text\n");
 	fprintf(stderr, "  -p - set page size A0 -- A4\n");
@@ -223,7 +223,7 @@ int object(char *first, char *second)
 	famp->id = id;
 	state = STATE_FAM;
 	chln = 0;
-   }
+    }
 
     return GPDF_SUCCESS;
 }
@@ -582,7 +582,7 @@ void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
 // Draw individual info
 
 int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
-		      int fs, float height, float slotwidth, float slotheight)
+		     int fs, float height, float slotwidth, float slotheight)
 {
     HPDF_Page_SetFontAndSize(page, font, fs);
     HPDF_Page_BeginText(page);
@@ -747,6 +747,18 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		    }
 		}
 
+		// Children
+
+		if (inds[i].nchi > 0)
+		{
+		    char s[16];
+
+		    HPDF_Page_MoveToNextLine(page);
+		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    sprintf(s, "c   %d", inds[i].nchi);
+		    HPDF_Page_ShowText(page, s);
+		}
+
 		// Death
 
 		if ((inds[i].deat.date[0] != '\0') &&
@@ -794,7 +806,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 // Draw family lines
 
 int draw_family_lines(HPDF_Page page, float height,
-		       float slotwidth, float slotheight)
+		      float slotwidth, float slotheight)
 {
     // Draw individual famc and fams connections
 
