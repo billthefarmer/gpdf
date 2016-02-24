@@ -33,14 +33,14 @@
 #include "hpdf.h"
 #include "gpdf.h"
 
-static const int pagesizes[5][2] =
-    {{840, 1188},
-     {594, 840},
-     {420, 594},
-     {297, 420},
-     {210, 297}};
+// static const int pagesizes[5][2] =
+//     {{840, 1188},
+//      {594, 840},
+//      {420, 594},
+//      {297, 420},
+//      {210, 297}};
 
-static const float muliplier = 72.0 / 25.4;
+// static const float muliplier = 72.0 / 25.4;
 
 indi inds[SIZE_INDS] = {};
 fam  fams[SIZE_FAMS] = {};
@@ -59,12 +59,9 @@ int gens = 0;
 bool writetext = false;
 bool boldnames = false;
 
-char *pagesize;
-char *fontsize;
-
 char file[SIZE_NAME];
 
-int fs = SIZE_FONT;
+float fs = SIZE_FONT;
 jmp_buf env;
 
 int main(int argc, char *argv[])
@@ -75,19 +72,19 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
     {
-	fprintf(stderr, "Usage: %s [-w] [-p pagesize] [-f fontsize] <infile>\n\n",
+	fprintf(stderr, "Usage: %s [-w] [-f fontsize] <infile>\n\n",
 		argv[0]);
 	fprintf(stderr, "  -w - write text file and layout page\n");
-	fprintf(stderr, "  -b - surnames in bold text\n");
-	fprintf(stderr, "  -p - set page size A0 -- A4\n");
-	fprintf(stderr, "  -f - set font size in 1/72 inch\n");
+	// fprintf(stderr, "  -b - surnames in bold text\n");
+	// fprintf(stderr, "  -p - set page size A0 -- A4\n");
+	fprintf(stderr, "  -f - set font size in points (1/72 inch)\n");
 
 	return GPDF_ERROR;
     }
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "wp:f:")) != -1)
+    while ((c = getopt(argc, argv, "wf:")) != -1)
 	switch (c)
 	{
 	case 'w':
@@ -95,11 +92,10 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'p':
-	    pagesize = optarg;
 	    break;
 
-	case 'c':
-	    fontsize = optarg;
+	case 'f':
+	    fs = atof(optarg);
 	    break;
 
 	case '?':
@@ -507,8 +503,24 @@ int write_textfile()
     strcpy(filename, file);
     strcat(filename, ".txt");
 
+#ifndef __MINGW32__
     textfile = fopen(filename, "wx");
+#else
+    // File open mode 'wx' not supported by windows, although in POSIX
+    // accorrding to Gnu C Library docs.
 
+    textfile = fopen(filename, "r");
+
+    if (textfile != NULL)
+    {
+	fprintf(stderr, "Not overwriting '%s'\n", filename);
+	return GPDF_SUCCESS;
+    }
+
+    fclose(textfile);
+
+    textfile = fopen(filename, "w");
+#endif
     if (textfile == NULL)
     {
 	fprintf(stderr, "gpdf: cant't write to %s\n", filename);
