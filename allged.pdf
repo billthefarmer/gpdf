@@ -27,6 +27,7 @@ endobj
 /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
 /Font <<
 /F1 7 0 R
+/F2 8 0 R
 >>
 >>
 /Parent 2 0 R
@@ -49,7 +50,11 @@ ET
 /F1 24 Tf
 BT
 416.85034 677.89001 Td
-(another name \057surname\057) Tj
+(another name ) Tj
+( ) Tj
+/F2 24 Tf
+(surname) Tj
+/F1 24 Tf
 T*
 0 -24 Td
 (b   ) Tj
@@ -70,7 +75,10 @@ T*
 ( ) Tj
 (The place) Tj
 0 -48 Td
-(\057Wife\057) Tj
+( ) Tj
+/F2 24 Tf
+(Wife) Tj
+/F1 24 Tf
 T*
 0 -24 Td
 (m  ) Tj
@@ -84,15 +92,30 @@ T*
 ( ) Tj
 (The place) Tj
 -376.85034 192 Td
-(\057Child 1\057) Tj
+( ) Tj
+/F2 24 Tf
+(Child 1) Tj
+/F1 24 Tf
 0 -144 Td
-(\057Child 2\057) Tj
+( ) Tj
+/F2 24 Tf
+(Child 2) Tj
+/F1 24 Tf
 753.70068 144 Td
-(\057Father\057) Tj
+( ) Tj
+/F2 24 Tf
+(Father) Tj
+/F1 24 Tf
 0 -144 Td
-(\057Adoptive mother\057) Tj
+( ) Tj
+/F2 24 Tf
+(Adoptive mother) Tj
+/F1 24 Tf
 -753.70068 -144 Td
-(\057Child 3\057) Tj
+( ) Tj
+/F2 24 Tf
+(Child 3) Tj
+/F1 24 Tf
 ET
 773.70068 677.89001 m
 783.70068 677.89001 l
@@ -146,7 +169,7 @@ S
 endstream
 endobj
 6 0 obj
-1456
+1595
 endobj
 7 0 obj
 <<
@@ -171,10 +194,10 @@ xref
 0000000064 00000 n
 0000000123 00000 n
 0000000184 00000 n
-0000000373 00000 n
-0000001883 00000 n
-0000001903 00000 n
-0000002001 00000 n
+0000000383 00000 n
+0000002032 00000 n
+0000002052 00000 n
+0000002150 00000 n
 trailer
 <<
 /Root 1 0 R
@@ -182,5 +205,5 @@ trailer
 /Size 9
 >>
 startxref
-2104
+2253
 %%EOF

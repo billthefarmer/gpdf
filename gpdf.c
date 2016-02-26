@@ -724,8 +724,9 @@ int read_textfile()
 
     while (getline(&linep, &size, textfile) != -1)
     {
-	int id;
-	float x, y;
+	int id = 0;
+	float x = 0;
+	float y = 0;
 
 	// parse fields
 
@@ -775,10 +776,30 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		// Name
 
 		if (inds[i].givn[0] == '\0')
+		{
+		    char *givn;
+		    char *surn;
+		    char *endn;
 
-		    // /Name/
+		    // Name
 
-		    HPDF_Page_TextOut(page, x, y, inds[i].name);
+		    givn = inds[i].name;
+		    surn = strchr(inds[i].name, '/');
+		    if (surn != NULL)
+			*surn = '\0';
+
+		    surn += 1;
+		    endn = strchr(surn, '/');
+		    if (endn != NULL)
+			*endn = '\0';
+
+		    HPDF_Page_TextOut(page, x, y, givn);
+		    HPDF_Page_ShowText(page, " ");
+
+		    HPDF_Page_SetFontAndSize(page, bold, fs);
+		    HPDF_Page_ShowText(page, surn);
+		    HPDF_Page_SetFontAndSize(page, font, fs);
+		}
 
 		else
 		{
