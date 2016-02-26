@@ -60,4 +60,4 @@ You can to test runs with only a few positions filled in to see what
 it looks like. Individuals with two zeros for the position won't
 appear.
 
-![](ttps://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/allged.png)
+![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/allged.png)
