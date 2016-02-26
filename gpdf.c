@@ -351,7 +351,7 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
 		return GPDF_ERROR;
 	    }
 
@@ -369,7 +369,7 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
 		return GPDF_ERROR;
 	    }
 
@@ -401,7 +401,7 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
 		return GPDF_ERROR;
 	    }
 
@@ -419,7 +419,7 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
 		return GPDF_ERROR;
 	    }
 
@@ -437,7 +437,7 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
 		return GPDF_ERROR;
 	    }
 

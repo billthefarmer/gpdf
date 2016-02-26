@@ -1,4 +1,4 @@
-# Mekfile
+# Mekfile for gpdf
 #
 
 GCC    = gcc
