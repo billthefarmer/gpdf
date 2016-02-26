@@ -68,7 +68,3 @@ chart.
 You can do test runs with only a few positions filled in to see what
 it looks like. Individuals with two zeros for the position won't
 appear.
-
-The allged.ged file does not contain the `GIVN` and `SURN` fields, so I have used the `NAME` field to produce useable output. This has the surname in slashes, as above. When these fields are present the names will appear with the surname in bold:
-
-  John **Doe**
