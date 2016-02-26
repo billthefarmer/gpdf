@@ -58,9 +58,10 @@ name for each individual in the file. Like this:
 ```
 The suggested x coordinate in the file is based on the calculated
 generation of the individual based on the number of generations of
-ancestors. It won't always be correct.  Fill in the x, y positions
-for each individual in the file and run the program again without the
--w switch. This will produce a pdf file with the chart.
+ancestors. It won't always be correct, depending on the data.  Fill in
+the x, y positions for each individual in the file and run the program
+again without the -w switch. This will produce a pdf file with the
+chart.
 
 ![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/allged.png)
 
