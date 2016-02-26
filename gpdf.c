@@ -56,6 +56,9 @@ int fmss = 0;
 int chln = 0;
 int gens = 0;
 
+int indindex = 1;
+int famindex = 1;
+
 bool writetext = false;
 bool boldnames = false;
 
@@ -70,18 +73,6 @@ int main(int argc, char *argv[])
 
     // Check args
 
-    if (argc < 2)
-    {
-	fprintf(stderr, "Usage: %s [-w] [-f fontsize] <infile>\n\n",
-		argv[0]);
-	fprintf(stderr, "  -w - write text file and layout page\n");
-	// fprintf(stderr, "  -b - surnames in bold text\n");
-	// fprintf(stderr, "  -p - set page size A0 -- A4\n");
-	fprintf(stderr, "  -f - set font size in points (1/72 inch)\n");
-
-	return GPDF_ERROR;
-    }
-
     opterr = 0;
 
     while ((c = getopt(argc, argv, "wf:")) != -1)
@@ -91,15 +82,12 @@ int main(int argc, char *argv[])
 	    writetext = true;
 	    break;
 
-	case 'p':
-	    break;
-
 	case 'f':
 	    fs = atof(optarg);
 	    break;
 
 	case '?':
-	    if ((optopt == 'p') || (optopt = 'f'))
+	    if (optopt == 'f')
 		fprintf (stderr, "Option -%c requires an argument\n", optopt);
 
 	    else if (isprint (optopt))
@@ -114,6 +102,18 @@ int main(int argc, char *argv[])
 	default:
 	    return GPDF_ERROR;
 	}
+
+    if (argv[optind] == NULL)
+    {
+	fprintf(stderr, "Usage: %s [-w] [-f fontsize] <infile>\n\n",
+		argv[0]);
+	fprintf(stderr, "  -w - write text file and layout page\n");
+	// fprintf(stderr, "  -b - surnames in bold text\n");
+	// fprintf(stderr, "  -p - set page size A0 -- A4\n");
+	fprintf(stderr, "  -f - set font size in points (1/72 inch)\n");
+
+	return GPDF_ERROR;
+    }
 
     int result;
 
@@ -131,11 +131,54 @@ int main(int argc, char *argv[])
 
     find_generations();
 
+    // If writing text file
+
+    if (writetext)
+	write_textfile();
+
     // Draw the tree
 
     draw_pdf();
 
     return GPDF_SUCCESS;
+}
+
+int find_individual(char *xref)
+{
+    for (int i = 1; i < indindex; i++)
+    {
+	// If found return id
+
+	if ((inds[i].id > 0) && (strcmp(inds[i].xref, xref) == 0))
+	{
+	    return inds[i].id;
+	}
+    }
+
+    // Else use next slot, save xref and return id
+
+    inds[indindex].id = indindex;
+    strcpy(inds[indindex].xref, xref);
+    return inds[indindex++].id;
+}
+
+int find_family(char *xref)
+{
+    for (int i = 1; i < famindex; i++)
+    {
+	// If found return id
+
+	if ((fams[i].id > 0) && (strcmp(fams[i].xref, xref) == 0))
+	{
+	    return fams[i].id;
+	}
+    }
+
+    // Else use next slot, save xref and return id
+
+    fams[famindex].id = famindex;
+    strcpy(fams[famindex].xref, xref);
+    return fams[famindex++].id;
 }
 
 int parse_gedcom_file(char *filename)
@@ -208,13 +251,15 @@ int object(char *first, char *second)
     else if (strcmp(second, "INDI") == 0)
     {
 	int id = 0;
+	char xref[SIZE_XREF];
 
-	sscanf(first, "@I%d@", &id);
+	sscanf(first, "@%31[0-9A-Za-z_]@", xref);
+
+	id = find_individual(xref);
 
 	if (id == 0)
 	{
-	    fprintf(stderr, "gpdf: Non-numeric identifier '%s'not supported\n",
-		    first);
+	    fprintf(stderr, "gpdf: Can't find '%s'\n", first);
 	    return GPDF_ERROR;
 	}
 
@@ -229,13 +274,15 @@ int object(char *first, char *second)
     else if (strcmp(second, "FAM") == 0)
     {
 	int id = 0;
+	char xref[SIZE_XREF];
 
-	sscanf(first, "@F%d@", &id);
+	sscanf(first, "@%31[0-9A-Za-z_]@", xref);
+
+	id = find_family(xref);
 
 	if (id == 0)
 	{
-	    fprintf(stderr, "Non-numeric identifier '%s'not supported\n",
-		    first);
+	    fprintf(stderr, "gpdf: Can't find '%s'\n", first);
 	    return GPDF_ERROR;
 	}
 
@@ -296,16 +343,36 @@ int attrib(char *first, char *second)
 	else if (strcmp(first, "FAMC") == 0)
 	{
 	    int id;
+	    char xref[SIZE_XREF];
 
-	    sscanf(second, "@F%d@", &id);
+	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
+
+	    id = find_family(xref);
+
+	    if (id == 0)
+	    {
+		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		return GPDF_ERROR;
+	    }
+
 	    indp->famc = &fams[id];
 	}
 
 	else if (strcmp(first, "FAMS") == 0)
 	{
 	    int id;
+	    char xref[SIZE_XREF];
 
-	    sscanf(second, "@F%d@", &id);
+	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
+
+	    id = find_family(xref);
+
+	    if (id == 0)
+	    {
+		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		return GPDF_ERROR;
+	    }
+
 	    indp->fams[fmss++] = &fams[id];
 	}
 
@@ -326,24 +393,54 @@ int attrib(char *first, char *second)
 	if (strcmp(first, "HUSB") == 0)
 	{
 	    int id;
+	    char xref[SIZE_XREF];
 
-	    sscanf(second, "@I%d@", &id);
+	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
+
+	    id = find_individual(xref);
+
+	    if (id == 0)
+	    {
+		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		return GPDF_ERROR;
+	    }
+
 	    famp->husb = &inds[id];
 	}
 
 	else if (strcmp(first, "WIFE") == 0)
 	{
 	    int id;
+	    char xref[SIZE_XREF];
 
-	    sscanf(second, "@I%d@", &id);
+	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
+
+	    id = find_individual(xref);
+
+	    if (id == 0)
+	    {
+		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		return GPDF_ERROR;
+	    }
+
 	    famp->wife = &inds[id];
 	}
 
 	else if (strcmp(first, "CHIL") == 0)
 	{
 	    int id;
+	    char xref[SIZE_XREF];
 
-	    sscanf(second, "@I%d@", &id);
+	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
+
+	    id = find_individual(xref);
+
+	    if (id == 0)
+	    {
+		fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+		return GPDF_ERROR;
+	    }
+
 	    famp->chil[++chln] = &inds[id];
 	}
 
@@ -516,6 +613,44 @@ int find_generations()
 	}
     }
 
+    for (int i = 1; i < SIZE_INDS; i++)
+    {
+	if (inds[i].id > 0)
+	{
+	    // If male
+
+	    if (inds[i].sex[0] == 'M')
+	    {
+		// See if a wife has more generations
+
+		for (int j = 0; j < SIZE_FMSS; j++)
+		{
+		    if ((inds[i].fams[j] != NULL) &&
+			(inds[i].fams[j]->wife != NULL) &&
+			(inds[i].fams[j]->wife->gens > inds[i].gens))
+			inds[i].gens = inds[i].fams[j]->wife->gens;
+		}
+	    }
+
+	    else
+	    {
+		// See if a husband has more generations
+
+		for (int j = 0; j < SIZE_FMSS; j++)
+		{
+		    if ((inds[i].fams[j] != NULL) &&
+			(inds[i].fams[j]->husb != NULL) &&
+			(inds[i].fams[j]->husb->gens > inds[i].gens))
+			inds[i].gens = inds[i].fams[j]->husb->gens;
+		}
+	    }
+
+	    // Calculate x position on page
+
+	    inds[i].posn.x = gens - inds[i].gens;
+	}
+    }
+
     return GPDF_SUCCESS;
 }
 
@@ -548,14 +683,18 @@ int write_textfile()
     if (textfile == NULL)
     {
 	fprintf(stderr, "gpdf: cant't write to %s\n", filename);
-	return GPDF_ERROR;
+	return GPDF_SUCCESS;
     }
+
+    fprintf(textfile, "   0  posn suggested\n");
+    fprintf(textfile, "   0  x  y    x      Name\n");
 
     for (int i = 1; i < SIZE_INDS; i++)
     {
 	if (inds[i].id > 0)
 	{
-	    fprintf(textfile, "%3d 0 0 %s\n", inds[i].id, inds[i].name);
+	    fprintf(textfile, "%4d  0  0    %1.0f      %s\n",
+		    inds[i].id, inds[i].posn.x, inds[i].name);
 	}
     }
 
@@ -635,20 +774,31 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 
 		// Name
 
-		HPDF_Page_TextOut(page, x, y, inds[i].givn);
-		if (inds[i].nick[0] != '\0')
-		{
-		    HPDF_Page_ShowText(page, " '");
-		    HPDF_Page_ShowText(page, inds[i].nick);
-		    HPDF_Page_ShowText(page, "' ");
-		}
+		if (inds[i].givn[0] == '\0')
+
+		    // /Name/
+
+		    HPDF_Page_TextOut(page, x, y, inds[i].name);
 
 		else
-		    HPDF_Page_ShowText(page, " ");
+		{
+		    // Given names surname
 
-		HPDF_Page_SetFontAndSize(page, bold, fs);
-		HPDF_Page_ShowText(page, inds[i].surn);
-		HPDF_Page_SetFontAndSize(page, font, fs);
+		    HPDF_Page_TextOut(page, x, y, inds[i].givn);
+		    if (inds[i].nick[0] != '\0')
+		    {
+			HPDF_Page_ShowText(page, " '");
+			HPDF_Page_ShowText(page, inds[i].nick);
+			HPDF_Page_ShowText(page, "' ");
+		    }
+
+		    else
+			HPDF_Page_ShowText(page, " ");
+
+		    HPDF_Page_SetFontAndSize(page, bold, fs);
+		    HPDF_Page_ShowText(page, inds[i].surn);
+		    HPDF_Page_SetFontAndSize(page, font, fs);
+		}
 
 		// Birth
 
@@ -904,30 +1054,30 @@ int draw_family_lines(HPDF_Page page, float height,
 
 	// Draw lines from husband to children
 
-	// if ((fams[i].husb != NULL) &&
-	//     ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
-	// {
-	//     float hx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
-	//     float hy = height - (SIZE_MARG * 2) -
-	// 	(fams[i].husb->posn.y * slotheight);
+	if ((fams[i].husb != NULL) &&
+	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
+	{
+	    float hx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
+	    float hy = height - (SIZE_MARG * 2) -
+		(fams[i].husb->posn.y * slotheight);
 
-	//     for (int j = 1; j < SIZE_CHLN; j++)
-	//     {
-	// 	if ((fams[i].chil[j] != NULL) &&
-	// 	    ((fams[i].chil[j]->posn.x > 0) ||
-	// 	     (fams[i].chil[j]->posn.y > 0)))
-	// 	{
-	// 	    float cx = (SIZE_MARG * 3) + slotwidth +
-	// 		(fams[i].chil[j]->posn.x * slotwidth);
-	// 	    float cy = height - (SIZE_MARG * 2) -
-	// 		(fams[i].chil[j]->posn.y * slotheight);
+	    for (int j = 1; j < SIZE_CHLN; j++)
+	    {
+		if ((fams[i].chil[j] != NULL) &&
+		    ((fams[i].chil[j]->posn.x > 0) ||
+		     (fams[i].chil[j]->posn.y > 0)))
+		{
+		    float cx = (SIZE_MARG * 3) + slotwidth +
+			(fams[i].chil[j]->posn.x * slotwidth);
+		    float cy = height - (SIZE_MARG * 2) -
+			(fams[i].chil[j]->posn.y * slotheight);
 
-	// 	    HPDF_Page_MoveTo(page, hx, hy);
-	// 	    HPDF_Page_LineTo(page, cx, cy);
-	// 	    HPDF_Page_Stroke(page);
-	// 	}
-	//     }
-	// }
+		    HPDF_Page_MoveTo(page, hx, hy);
+		    HPDF_Page_LineTo(page, cx, cy);
+		    HPDF_Page_Stroke(page);
+		}
+	    }
+	}
 
 	// Draw lines from wife to husband
 
@@ -965,16 +1115,6 @@ int draw_pdf()
 
     char filename[256];
     char title[256];
-
-    if (writetext)
-    {
-	int result;
-
-	result = write_textfile();
-
-	if (result != GPDF_SUCCESS)
-	    return GPDF_ERROR;
-    }
 
     strcpy(title, file);
     title[0] = toupper(title[0]);
@@ -1052,6 +1192,7 @@ int draw_pdf()
 	}
 
 	HPDF_Page_EndText(page);
+	HPDF_SaveToFile(pdf, "slots.pdf");
     }
 
     else
@@ -1080,20 +1221,14 @@ int draw_pdf()
 
 	draw_individuals(page, font, bold, fs, height, slotwidth, slotheight);
 	draw_family_lines(page, height, slotwidth, slotheight);
-    }
 
-    // Save file
-
-    if (!writetext)
-    {
 	strcpy(filename, file);
 	strcat(filename, ".pdf");
+
+	// Save file
+
+	HPDF_SaveToFile(pdf, filename);
     }
-
-    else
-	strcpy(filename, "slots.pdf");
-
-    HPDF_SaveToFile(pdf, filename);
 
     return GPDF_SUCCESS;
 }

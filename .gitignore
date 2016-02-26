@@ -1,7 +1,8 @@
-# Gedcom files, text files and pdf files
+# Gedcom files, text filesi, png files and pdf files
 *.ged
 *.txt
 *.pdf
+*.png
 
 # Emacs backups
 *~

@@ -38,6 +38,7 @@ typedef enum
      SIZE_SURN = 32,
      SIZE_PLAC = 32,
      SIZE_OCCU = 32,
+     SIZE_XREF = 32,
      SIZE_NICK = 16,
      SIZE_DATE = 16,
      SIZE_CHLN = 16,
@@ -103,6 +104,7 @@ typedef struct indi_s
     int gens;
     int nchi;
     coord posn;
+    char xref[SIZE_XREF];
     char name[SIZE_NAME];
     char givn[SIZE_GIVN];
     char surn[SIZE_GIVN];
@@ -121,6 +123,7 @@ typedef struct fam_s
     int id;
     indi *husb;
     indi *wife;
+    char xref[SIZE_XREF];
     marr marr;
     divc div;
     indi *chil[SIZE_CHLN];
@@ -130,6 +133,7 @@ typedef struct fam_s
 
 int parse_gedcom_file(char *);
 int find_generations();
+int write_textfile();
 int draw_pdf();
 int object(char *, char *);
 int attrib(char *, char *);
