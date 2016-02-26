@@ -42,7 +42,7 @@ This will produce an A3 pdf file with a grid of slots with x, y
 positions, and a text file with a list of ids, two zeros and the
 name for each individual in the file. Like this:
 
-![billthefarmer.github.io/images/gpdf/slots.png](billthefarmer.github.io/images/gpdf/slots.png)
+![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/slots.png)
 ```
    0  posn suggested
    0  x  y    x      Name
@@ -60,4 +60,4 @@ You can to test runs with only a few positions filled in to see what
 it looks like. Individuals with two zeros for the position won't
 appear.
 
-![billthefarmer.github.io/images/gpdf/allged.png](billthefarmer.github.io/images/gpdf/allged.png)
+![](ttps://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/allged.png)
