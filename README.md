@@ -3,9 +3,9 @@
 
 Read and parse a GEDCOM format text file into memory and produce a
 large format pdf output file. This program was developed and tested
-using GEDCOM output from the Webtrees geneology software, which uses
-numeric identifiers. Other GEDCOM files on the web use text
-identifiers which won't work.
+using GEDCOM output from the Webtrees geneology software. It has also
+been tested with the allged.ged test file which contains masses of
+data which is ignored.
 
 I initially attempted to use the
 [GEDCOM parser library](http://gedcom-parse.sourceforge.net) for
@@ -19,27 +19,39 @@ produced on [Webtrees](https://www.webtrees.net/index.php/en).
 I decided to use [libHaru ](http://libharu.org) to produce the pdf
 output. This will build successfully after the build files are
 patched. The program is written in generic C, so should work on any
-platform that libHaru will build on.
+platform that libHaru will build on. To build libHaru on windows
+requires zlib and libpng, which can be found in MingW32 and
+gnuwin32. To build libHaru on Mac OSX requires libpng, which can be
+built and installed. On Linux, just install zlib and libpng if they
+are not already installed.
 
 I discovered that Mingw32 does not contain `getline()`, which is a bit
 essential. I discovered an implementation online. This is not needed
-on linux and probably not on OSX either.
+on linux and not on OSX either.
 
 To run on windows you will need to extricate libpng and zlib from
-Mingw32 and put them in the execution folder.
+Mingw32 and put them in the execution folder with libHaru.
 
 To use the program, use the -w switch for the initial run like this:
 ```
 $ gpdf -w <infile.ged>
 ```
 This will produce an A3 pdf file with a grid of slots with x, y
-coordinates, and a text file with a list of ids, two zeros and the
+positions, and a text file with a list of ids, two zeros and the
 name for each individual in the file. Like this:
 ```
-1  0 0 Jane /Doe/
-2  0 0 John /Doe/
+   0  posn suggested
+   0  x  y    x      Name
+   1  0  0    1      Jane /Doe/
+   2  0  0    1      John /Doe/
 ...
 ```
-Fill in the x, y coordinates for each individual in the file and run
-the program again without the -w switch. This will produce a pdf file
-with the chart, overwriting the grid.
+The suggested x coordinate in the file is based on the calculated
+generation of the individual based on the number of generations of
+ancestors. It won't always be correct.  Fill in the x, y positions
+for each individual in the file and run the program again without the
+-w switch. This will produce a pdf file with the chart.
+
+You can to test runs with only a few positions filled in to see what
+it looks like. Individuals with two zeros for the position won't
+appear.
