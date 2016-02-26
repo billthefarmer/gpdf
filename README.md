@@ -64,6 +64,6 @@ for each individual in the file and run the program again without the
 
 ![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/allged.png)
 
-You can to test runs with only a few positions filled in to see what
+You can do test runs with only a few positions filled in to see what
 it looks like. Individuals with two zeros for the position won't
 appear.
