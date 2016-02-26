@@ -25,7 +25,7 @@ gnuwin32. To build libHaru on Mac OSX requires libpng, which can be
 built and installed. On Linux, just install zlib and libpng if they
 are not already installed. On Linux Mint thats:
 ```
-$ sudo apt install zlib1g-dev libpng-dev
+$ sudo apt install libz-dev libpng-dev
 ```
 I discovered that Mingw32 does not contain `getline()`, which is a bit
 essential. I discovered an implementation online. This is not needed
