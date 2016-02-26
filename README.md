@@ -46,8 +46,14 @@ name for each individual in the file. Like this:
 ```
    0  posn suggested
    0  x  y    x      Name
-   1  0  0    1      Jane /Doe/
-   2  0  0    1      John /Doe/
+   1  1  1    1      another name /surname/
+   2  1  2    1      /Wife/
+   3  0  1    0      /Child 1/
+   4  0  2    0      /Child 2/
+   5  2  1    2      /Father/
+   6  2  2    2      /Adoptive mother/
+   7  0  3    0      /Child 3/
+   8  0  0    1      /2nd Wife/
 ...
 ```
 The suggested x coordinate in the file is based on the calculated
