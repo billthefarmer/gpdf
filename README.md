@@ -43,6 +43,8 @@ positions, and a text file with a list of ids, two zeros and the
 name for each individual in the file. Like this:
 
 ![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/slots.png)
+
+The allged.ged file does not contain the `GIVN` and `SURN` fields, so I have used the `NAME` field to produce useable output. This has the surname in slashes, as below.
 ```
    0  posn suggested
    0  x  y    x      Name
