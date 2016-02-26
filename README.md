@@ -62,8 +62,8 @@ ancestors. It won't always be correct.  Fill in the x, y positions
 for each individual in the file and run the program again without the
 -w switch. This will produce a pdf file with the chart.
 
+![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/allged.png)
+
 You can to test runs with only a few positions filled in to see what
 it looks like. Individuals with two zeros for the position won't
 appear.
-
-![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/allged.png)
