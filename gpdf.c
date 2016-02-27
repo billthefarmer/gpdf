@@ -63,6 +63,7 @@ bool writetext = false;
 bool boldnames = false;
 
 char file[SIZE_NAME];
+char *progname;
 
 float fs = SIZE_FONT;
 jmp_buf env;
@@ -103,10 +104,13 @@ int main(int argc, char *argv[])
 	    return GPDF_ERROR;
 	}
 
+    // Store program name for error messages
+
+    progname = argv[0];
+
     if (argv[optind] == NULL)
     {
-	fprintf(stderr, "Usage: %s [-w] [-f fontsize] <infile>\n\n",
-		argv[0]);
+	fprintf(stderr, "Usage: %s [-w] [-f fontsize] <infile>\n\n", progname);
 	fprintf(stderr, "  -w - write text file and layout page\n");
 	// fprintf(stderr, "  -b - surnames in bold text\n");
 	// fprintf(stderr, "  -p - set page size A0 -- A4\n");
@@ -123,7 +127,7 @@ int main(int argc, char *argv[])
 
     if (result != GPDF_SUCCESS)
     {
-	fprintf(stderr, "gpdf: Couldn't parse %s\n", argv[optind]);
+	fprintf(stderr, "%s: Couldn't parse %s\n", progname, argv[optind]);
 	return GPDF_ERROR;
     }
 
@@ -145,6 +149,11 @@ int main(int argc, char *argv[])
 
 int find_individual(char *xref)
 {
+    // Overflow check
+
+    if (indindex >= SIZE_INDS)
+	return 0;
+
     for (int i = 1; i < indindex; i++)
     {
 	// If found return id
@@ -164,6 +173,11 @@ int find_individual(char *xref)
 
 int find_family(char *xref)
 {
+    // Overflow check
+
+    if (famindex >= SIZE_FAMS)
+	return 0;
+
     for (int i = 1; i < famindex; i++)
     {
 	// If found return id
@@ -259,7 +273,7 @@ int object(char *first, char *second)
 
 	if (id == 0)
 	{
-	    fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+	    fprintf(stderr, "%s: Can't find slot for '%s'\n", progname, first);
 	    return GPDF_ERROR;
 	}
 
@@ -282,7 +296,7 @@ int object(char *first, char *second)
 
 	if (id == 0)
 	{
-	    fprintf(stderr, "gpdf: Can't find '%s'\n", first);
+	    fprintf(stderr, "%s: Can't find slot for '%s'\n", progname, first);
 	    return GPDF_ERROR;
 	}
 
@@ -351,7 +365,8 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
+		fprintf(stderr, "%s: Can't find slot for '%s'\n",
+			progname, second);
 		return GPDF_ERROR;
 	    }
 
@@ -369,7 +384,8 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
+		fprintf(stderr, "%s: Can't find slot for '%s'\n",
+			progname, second);
 		return GPDF_ERROR;
 	    }
 
@@ -401,7 +417,8 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
+		fprintf(stderr, "%s: Can't find slot for '%s'\n",
+			progname, second);
 		return GPDF_ERROR;
 	    }
 
@@ -419,7 +436,8 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
+		fprintf(stderr, "%s: Can't find slot for '%s'\n",
+			progname, second);
 		return GPDF_ERROR;
 	    }
 
@@ -437,7 +455,8 @@ int attrib(char *first, char *second)
 
 	    if (id == 0)
 	    {
-		fprintf(stderr, "gpdf: Can't find '%s'\n", second);
+		fprintf(stderr, "%s: Can't find slot for '%s'\n",
+			progname, second);
 		return GPDF_ERROR;
 	    }
 
@@ -672,7 +691,7 @@ int write_textfile()
 
     if (textfile != NULL)
     {
-	fprintf(stderr, "Not overwriting '%s'\n", filename);
+	fprintf(stderr, "%s: Not overwriting '%s'\n", progname, filename);
 	return GPDF_SUCCESS;
     }
 
@@ -682,7 +701,7 @@ int write_textfile()
 #endif
     if (textfile == NULL)
     {
-	fprintf(stderr, "gpdf: cant't write to %s\n", filename);
+	fprintf(stderr, "%s: cant't write to %s\n", progname, filename);
 	return GPDF_SUCCESS;
     }
 
@@ -718,7 +737,7 @@ int read_textfile()
 
     if (textfile == NULL)
     {
-	fprintf(stderr, "gpdf: can't read %s\n", filename);
+	fprintf(stderr, "%s: can't read %s\n", progname, filename);
 	return GPDF_ERROR;
     }
 
@@ -749,8 +768,8 @@ int read_textfile()
 void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
 		   void *user_data __attribute__ ((unused)))
 {
-    printf ("gpdf: error_no=%04X, detail_no=%u\n", (HPDF_UINT)error_no,
-	    (HPDF_UINT)detail_no);
+    fprintf (stderr, "%s: libHaru error_no=%04X, detail_no=%u\n",
+	     progname, (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
 
     longjmp(env, 1);
 }
@@ -1144,7 +1163,7 @@ int draw_pdf()
     pdf = HPDF_New(error_handler, NULL);
     if (pdf == NULL)
     {
-        fprintf(stderr, "gpdf: cannot create PdfDoc object\n");
+        fprintf(stderr, "%s: cannot create PdfDoc object\n", progname);
         return GPDF_ERROR;
     }
 
