@@ -768,7 +768,7 @@ int read_textfile()
 void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
 		   void *user_data __attribute__ ((unused)))
 {
-    fprintf (stderr, "%s: libHaru error_no=%04X, detail_no=%u\n",
+    fprintf (stderr, "%s: libHaru error_no = %04X, detail_no = %u\n",
 	     progname, (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
 
     longjmp(env, 1);
