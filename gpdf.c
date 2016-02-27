@@ -705,15 +705,15 @@ int write_textfile()
 	return GPDF_SUCCESS;
     }
 
-    fprintf(textfile, "   0  posn suggested\n");
-    fprintf(textfile, "   0  x  y    x      Name\n");
+    fprintf(textfile, "   0  posn  suggested\n");
+    fprintf(textfile, "   0  x  y      x     xref  Name\n");
 
     for (int i = 1; i < SIZE_INDS; i++)
     {
 	if (inds[i].id > 0)
 	{
-	    fprintf(textfile, "%4d  0  0    %1.0f      %s\n",
-		    inds[i].id, inds[i].posn.x, inds[i].name);
+	    fprintf(textfile, "%4d  0  0      %1.0f      %s  %s\n",
+		    inds[i].id, inds[i].posn.x, inds[i].xref, inds[i].name);
 	}
     }
 
