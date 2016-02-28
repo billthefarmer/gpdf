@@ -69,3 +69,8 @@ chart.
 You can do test runs with only a few positions filled in to see what
 it looks like. Individuals with two zeros for the position won't
 appear.
+
+![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/whatamess.png)
+
+If you change the algorithm for resolving GEDCOM xrefs half way
+through the development process you can produce a wonderful mess.

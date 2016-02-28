@@ -813,8 +813,6 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			*endn = '\0';
 
 		    HPDF_Page_TextOut(page, x, y, givn);
-		    HPDF_Page_ShowText(page, " ");
-
 		    HPDF_Page_SetFontAndSize(page, bold, fs);
 		    HPDF_Page_ShowText(page, surn);
 		    HPDF_Page_SetFontAndSize(page, font, fs);
@@ -1163,7 +1161,7 @@ int draw_pdf()
     pdf = HPDF_New(error_handler, NULL);
     if (pdf == NULL)
     {
-        fprintf(stderr, "%s: cannot create PdfDoc object\n", progname);
+        fprintf(stderr, "%s: can't create PdfDoc object\n", progname);
         return GPDF_ERROR;
     }
 
