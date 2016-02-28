@@ -28,8 +28,9 @@ already installed. On Linux Mint thats:
 $ sudo apt install libz-dev libpng-dev
 ```
 Mingw32 appears not to contain `getline()`, which is a bit
-essential. An implementation was discovered online. This is not needed
-on linux and not on OSX either.
+essential. An implementation was discovered online here:
+https://opensource.apple.com/source/cvs/cvs-19/cvs/lib/getline.c. This
+is not needed on linux and not on OSX either.
 
 To run on windows you will need to extricate libpng and zlib from
 Mingw32 and put them in the execution folder with libHaru.
