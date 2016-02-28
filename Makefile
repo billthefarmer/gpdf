@@ -4,7 +4,7 @@
 GCC    = gcc
 
 ifeq ($(OS), Windows_NT)
-CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -Llibs -lhpdf
+CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -Llib -lhpdf
 else
 CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -lhpdf
 endif

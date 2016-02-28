@@ -79,6 +79,10 @@ int main(int argc, char *argv[])
     while ((c = getopt(argc, argv, "wf:")) != -1)
 	switch (c)
 	{
+	case 'b':
+	    boldnames = true;
+	    break;
+
 	case 'w':
 	    writetext = true;
 	    break;
@@ -788,8 +792,9 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 	{
 	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
 	    {
-		float x = (SIZE_MARG * 4) + (inds[i].posn.x * slotwidth);
-		float y = height - (SIZE_MARG * 2) -
+		float x = (SIZE_MARGIN + (SIZE_INSET * 2)) +
+		    (inds[i].posn.x * slotwidth);
+		float y = height - SIZE_MARGIN -
 		    (inds[i].posn.y * slotheight);
 
 		// Name
@@ -1040,21 +1045,22 @@ int draw_family_lines(HPDF_Page page, float height,
 	{
 	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
 	    {
-		float x = (SIZE_MARG * 4) + (inds[i].posn.x * slotwidth);
-		float y = height - (SIZE_MARG * 2) -
+		float x = (SIZE_MARGIN + (SIZE_INSET * 2)) +
+		    (inds[i].posn.x * slotwidth);
+		float y = height - SIZE_MARGIN -
 		    (inds[i].posn.y * slotheight);
 
 		if (inds[i].famc != NULL)
 		{
-		    HPDF_Page_MoveTo(page, x + slotwidth - (SIZE_MARG * 2), y);
-		    HPDF_Page_LineTo(page, x + slotwidth - SIZE_MARG, y);
+		    HPDF_Page_MoveTo(page, x + slotwidth - (SIZE_INSET * 2), y);
+		    HPDF_Page_LineTo(page, x + slotwidth - SIZE_INSET, y);
 		    HPDF_Page_Stroke(page);
 		}
 
 		if (inds[i].fams[0] != NULL)
 		{
 		    HPDF_Page_MoveTo(page, x, y);
-		    HPDF_Page_LineTo(page, x - SIZE_MARG, y);
+		    HPDF_Page_LineTo(page, x - SIZE_INSET, y);
 		    HPDF_Page_Stroke(page);
 		}
 	    }
@@ -1068,8 +1074,9 @@ int draw_family_lines(HPDF_Page page, float height,
 	if ((fams[i].wife != NULL) &&
 	    ((fams[i].wife->posn.x > 0) || (fams[i].wife->posn.y > 0)))
 	{
-	    float wx = (SIZE_MARG * 3) + (fams[i].wife->posn.x * slotwidth);
-	    float wy = height - (SIZE_MARG * 2) -
+	    float wx = (SIZE_MARGIN + SIZE_INSET) +
+		(fams[i].wife->posn.x * slotwidth);
+	    float wy = height - SIZE_MARGIN -
 		(fams[i].wife->posn.y * slotheight);
 
 	    for (int j = 1; j < SIZE_CHLN; j++)
@@ -1078,9 +1085,9 @@ int draw_family_lines(HPDF_Page page, float height,
 		    ((fams[i].chil[j]->posn.x > 0) ||
 		     (fams[i].chil[j]->posn.y > 0)))
 		{
-		    float cx = (SIZE_MARG * 3) + slotwidth +
+		    float cx = (SIZE_MARGIN + SIZE_INSET) + slotwidth +
 			(fams[i].chil[j]->posn.x * slotwidth);
-		    float cy = height - (SIZE_MARG * 2) -
+		    float cy = height - SIZE_MARGIN -
 			(fams[i].chil[j]->posn.y * slotheight);
 
 		    HPDF_Page_MoveTo(page, wx, wy);
@@ -1095,8 +1102,9 @@ int draw_family_lines(HPDF_Page page, float height,
 	if ((fams[i].husb != NULL) &&
 	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
 	{
-	    float hx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
-	    float hy = height - (SIZE_MARG * 2) -
+	    float hx = (SIZE_MARGIN + SIZE_INSET) +
+		(fams[i].husb->posn.x * slotwidth);
+	    float hy = height - SIZE_MARGIN -
 		(fams[i].husb->posn.y * slotheight);
 
 	    for (int j = 1; j < SIZE_CHLN; j++)
@@ -1105,9 +1113,9 @@ int draw_family_lines(HPDF_Page page, float height,
 		    ((fams[i].chil[j]->posn.x > 0) ||
 		     (fams[i].chil[j]->posn.y > 0)))
 		{
-		    float cx = (SIZE_MARG * 3) + slotwidth +
+		    float cx = (SIZE_MARGIN + SIZE_INSET) + slotwidth +
 			(fams[i].chil[j]->posn.x * slotwidth);
-		    float cy = height - (SIZE_MARG * 2) -
+		    float cy = height - SIZE_MARGIN -
 			(fams[i].chil[j]->posn.y * slotheight);
 
 		    HPDF_Page_MoveTo(page, hx, hy);
@@ -1123,12 +1131,14 @@ int draw_family_lines(HPDF_Page page, float height,
 	    ((fams[i].wife->posn.x > 0) || (fams[i].wife->posn.y > 0)) &&
 	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
 	{
-	    float wx = (SIZE_MARG * 3) + (fams[i].wife->posn.x * slotwidth);
-	    float wy = height - (SIZE_MARG * 2) -
+	    float wx = (SIZE_MARGIN + SIZE_INSET) +
+		(fams[i].wife->posn.x * slotwidth);
+	    float wy = height - SIZE_MARGIN -
 		(fams[i].wife->posn.y * slotheight);
 
-	    float hx = (SIZE_MARG * 3) + (fams[i].husb->posn.x * slotwidth);
-	    float hy = height - (SIZE_MARG * 2) -
+	    float hx = (SIZE_MARGIN + SIZE_INSET) +
+		(fams[i].husb->posn.x * slotwidth);
+	    float hy = height - SIZE_MARGIN -
 		(fams[i].husb->posn.y * slotheight);
 
 	    HPDF_Page_MoveTo(page, hx, hy);
@@ -1180,8 +1190,8 @@ int draw_pdf()
 
     // Draw the border of the page
     HPDF_Page_SetLineWidth(page, 0.6);
-    HPDF_Page_Rectangle(page, SIZE_MARG, SIZE_MARG,
-			width - (2 * SIZE_MARG), height - (2 * SIZE_MARG));
+    HPDF_Page_Rectangle(page, SIZE_MARGIN, SIZE_MARGIN,
+			width - (2 * SIZE_MARGIN), height - (2 * SIZE_MARGIN));
 
     font = HPDF_GetFont(pdf, FONT, NULL);
     bold = HPDF_GetFont(pdf, BOLD, NULL);
@@ -1190,26 +1200,26 @@ int draw_pdf()
     {
 	// Horizontal slots on the page
 
-	float slotwidth = (width - (SIZE_MARG * 4)) / (gens + 1);
+	float slotwidth = (width - (SIZE_MARGIN * 4)) / (gens + 1);
 	float slotheight = fs * 6;
 
 	for (int i = 1; i < gens + 1; i++)
 	{
-	    float x = (2 * SIZE_MARG) + (i * slotwidth);
+	    float x = (2 * SIZE_MARGIN) + (i * slotwidth);
 
-	    HPDF_Page_MoveTo(page, x, SIZE_MARG);
-	    HPDF_Page_LineTo(page, x, height - SIZE_MARG);
+	    HPDF_Page_MoveTo(page, x, SIZE_MARGIN);
+	    HPDF_Page_LineTo(page, x, height - SIZE_MARGIN);
 	}
 
 	// Vertical slots on the page
 
-	int slots = (height - (SIZE_MARG * 6)) / slotheight;
+	int slots = (height - (SIZE_MARGIN * 6)) / slotheight;
 	for (int i = 1; i < slots; i++)
 	{
-	    float y = (4 * SIZE_MARG) + (i * slotheight);
+	    float y = (4 * SIZE_MARGIN) + (i * slotheight);
 
-	    HPDF_Page_MoveTo(page, SIZE_MARG, y);
-	    HPDF_Page_LineTo(page, width - SIZE_MARG, y);
+	    HPDF_Page_MoveTo(page, SIZE_MARGIN, y);
+	    HPDF_Page_LineTo(page, width - SIZE_MARGIN, y);
 	}
 
 	HPDF_Page_Stroke(page);
@@ -1222,8 +1232,8 @@ int draw_pdf()
 	    {
 		char s[16];
 
-		float x = (3 * SIZE_MARG) + (j * slotwidth);
-		float y = height - (6 * SIZE_MARG) - (i * slotheight);
+		float x = (3 * SIZE_MARGIN) + (j * slotwidth);
+		float y = height - (6 * SIZE_MARGIN) - (i * slotheight);
 		sprintf(s, "%d, %d", j, i);
 		HPDF_Page_TextOut(page, x, y, s);
 	    }
@@ -1243,7 +1253,8 @@ int draw_pdf()
 	if (result != GPDF_SUCCESS)
 	    return GPDF_ERROR;
 
-	HPDF_Page_Rectangle(page, width - 210, SIZE_MARG, 200, 22);
+	HPDF_Page_Rectangle(page, width - 200 - SIZE_MARGIN,
+			    SIZE_MARGIN, 200, 22);
 	HPDF_Page_Stroke(page);
 
 	// Draw the title of the page (with positioning center).
@@ -1251,11 +1262,13 @@ int draw_pdf()
 
 	tw = HPDF_Page_TextWidth(page, title);
 	HPDF_Page_BeginText(page);
-	HPDF_Page_TextOut(page, (width - 110) - tw / 2, 14, title);
+	HPDF_Page_TextOut(page, (width - 100 - SIZE_MARGIN) - tw / 2,
+			  SIZE_MARGIN + 5, title);
 	HPDF_Page_EndText(page);
 
 	float slotheight = fs * 6;
-	float slotwidth = (width - (SIZE_MARG * 6)) / (gens + 1);
+	float slotwidth = (width - (SIZE_MARGIN * 2) -
+			   (SIZE_INSET * 2)) / (gens + 1);
 
 	draw_individuals(page, font, bold, fs, height, slotwidth, slotheight);
 	draw_family_lines(page, height, slotwidth, slotheight);
