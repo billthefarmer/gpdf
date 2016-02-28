@@ -73,4 +73,5 @@ appear.
 ![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/whatamess.png)
 
 If you change the algorithm for resolving GEDCOM xrefs half way
-through the development process you can produce a wonderful mess.
+through the development process you can produce a wonderful mess. All
+these lines are correct, it's just the people are in the wrong places.
