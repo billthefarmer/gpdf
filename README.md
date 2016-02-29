@@ -34,7 +34,12 @@ is not needed on linux and not on OSX either.
 
 To run on windows you will need to extricate libpng and zlib from
 Mingw32 and put them in the execution folder with libHaru.
+```
+Usage: ./gpdf [-w] [-f fontsize] <infile>
 
+  -w - write text file and layout page
+  -f - set font size in points (1/72 inch)
+```
 To use the program, use the -w switch for the initial run like this:
 ```
 $ gpdf -w <infile.ged>``
