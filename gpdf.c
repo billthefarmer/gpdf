@@ -56,6 +56,8 @@ int fmss = 0;
 int chln = 0;
 int gens = 0;
 
+// Start individuals and families at index 1, then 0 is an unused slot
+
 int indindex = 1;
 int famindex = 1;
 
@@ -66,6 +68,9 @@ char file[SIZE_NAME];
 char *progname;
 
 float fs = SIZE_FONT;
+
+// jmp_buf for arcane HPDF error handler
+
 jmp_buf env;
 
 int main(int argc, char *argv[])
@@ -77,6 +82,7 @@ int main(int argc, char *argv[])
     opterr = 0;
 
     while ((c = getopt(argc, argv, "wf:")) != -1)
+    {
 	switch (c)
 	{
 	case 'b':
@@ -107,6 +113,7 @@ int main(int argc, char *argv[])
 	default:
 	    return GPDF_ERROR;
 	}
+    }
 
     // Store program name for error messages
 
@@ -151,6 +158,8 @@ int main(int argc, char *argv[])
     return GPDF_SUCCESS;
 }
 
+// Resolve GEDCOM xrefs
+
 int find_individual(char *xref)
 {
     // Overflow check
@@ -168,7 +177,7 @@ int find_individual(char *xref)
 	}
     }
 
-    // Else use next slot, save xref and return id
+    // Use next slot, save xref and return id
 
     inds[indindex].id = indindex;
     strcpy(inds[indindex].xref, xref);
@@ -192,7 +201,7 @@ int find_family(char *xref)
 	}
     }
 
-    // Else use next slot, save xref and return id
+    // Use next slot, save xref and return id
 
     fams[famindex].id = famindex;
     strcpy(fams[famindex].xref, xref);
@@ -218,7 +227,7 @@ int parse_gedcom_file(char *filename)
 
     while (getline(&linep, &size, infile) != -1)
     {
-	int type;
+	int type = 0;
 	char first[64] = {0};
 	char second[64] = {0};
 
@@ -360,7 +369,7 @@ int attrib(char *first, char *second)
 
 	else if (strcmp(first, "FAMC") == 0)
 	{
-	    int id;
+	    int id = 0;
 	    char xref[SIZE_XREF];
 
 	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
@@ -379,7 +388,7 @@ int attrib(char *first, char *second)
 
 	else if (strcmp(first, "FAMS") == 0)
 	{
-	    int id;
+	    int id = 0;
 	    char xref[SIZE_XREF];
 
 	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
@@ -412,7 +421,7 @@ int attrib(char *first, char *second)
     case STATE_FAM:
 	if (strcmp(first, "HUSB") == 0)
 	{
-	    int id;
+	    int id = 0;
 	    char xref[SIZE_XREF];
 
 	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
@@ -431,7 +440,7 @@ int attrib(char *first, char *second)
 
 	else if (strcmp(first, "WIFE") == 0)
 	{
-	    int id;
+	    int id = 0;
 	    char xref[SIZE_XREF];
 
 	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
@@ -450,7 +459,7 @@ int attrib(char *first, char *second)
 
 	else if (strcmp(first, "CHIL") == 0)
 	{
-	    int id;
+	    int id = 0;
 	    char xref[SIZE_XREF];
 
 	    sscanf(second, "@%31[0-9A-Za-z_]@", xref);
@@ -590,7 +599,7 @@ int find_generations()
 {
     // Iterate through the individuals
 
-    for (int i = 1; i < SIZE_INDS; i++)
+    for (int i = 1; i < indindex; i++)
     {
 	if (inds[i].id > 0)
 	{
@@ -636,7 +645,9 @@ int find_generations()
 	}
     }
 
-    for (int i = 1; i < SIZE_INDS; i++)
+    // Iterate through the individuals
+
+    for (int i = 1; i < indindex; i++)
     {
 	if (inds[i].id > 0)
 	{
@@ -751,7 +762,7 @@ int read_textfile()
 	float x = 0;
 	float y = 0;
 
-	// parse fields
+	// Parse first three fields, ignore the rest
 
 	sscanf(line, " %d %f %f", &id, &x, &y);
 
@@ -786,10 +797,14 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
     HPDF_Page_SetFontAndSize(page, font, fs);
     HPDF_Page_BeginText(page);
 
-    for (int i = 0; i < SIZE_INDS; i++)
+    // Iterate through the individuals
+
+    for (int i = 0; i < indindex; i++)
     {
 	if (inds[i].id > 0)
 	{
+	    // Check the position
+
 	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
 	    {
 		float x = (SIZE_MARGIN + (SIZE_INSET * 2)) +
