@@ -4,9 +4,16 @@
 GCC    = gcc
 
 ifeq ($(OS), Windows_NT)
-CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -Llib -lhpdf
+  win64 = $(shell which gcc | grep 64)
+  ifneq ($(win64)x, x)
+    CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -Llib64 -lhpdf
+
+  else
+    CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -Llib32 -lhpdf
+  endif
+
 else
-CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -lhpdf
+  CFLAGS = -g -W -Wall -std=gnu99 -Iinclude -lhpdf
 endif
 
 all:	gpdf

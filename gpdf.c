@@ -319,6 +319,9 @@ int object(char *first, char *second)
 	chln = 0;
     }
 
+    else
+	state = STATE_NONE;
+
     return GPDF_SUCCESS;
 }
 
@@ -359,12 +362,6 @@ int attrib(char *first, char *second)
 	    indp->deat.yes = true;
 	    date = DATE_DEAT;
 	    plac = PLAC_DEAT;
-	}
-
-	else if (strcmp(first, "CHAN") == 0)
-	{
-	    date = DATE_NONE;
-	    plac = PLAC_NONE;
 	}
 
 	else if (strcmp(first, "FAMC") == 0)
@@ -413,6 +410,12 @@ int attrib(char *first, char *second)
 	else if (strcmp(first, "OCCU") == 0)
 	{
 	    strncpy(indp->occu, second, SIZE_OCCU - 1);
+	}
+
+	else
+	{
+	    date = DATE_NONE;
+	    plac = PLAC_NONE;
 	}
 	break;
 
@@ -476,12 +479,6 @@ int attrib(char *first, char *second)
 	    famp->chil[++chln] = &inds[id];
 	}
 
-	else if (strcmp(first, "CHAN") == 0)
-	{
-	    date = DATE_NONE;
-	    plac = PLAC_NONE;
-	}
-
 	else if (strcmp(first, "MARR") == 0)
 	{
 	    famp->marr.yes = true;
@@ -494,6 +491,12 @@ int attrib(char *first, char *second)
 	    famp->div.yes = true;
 	    date = DATE_DIV;
 	    plac = PLAC_DIV;
+	}
+
+	else
+	{
+	    date = DATE_NONE;
+	    plac = PLAC_NONE;
 	}
 	break;
     }
