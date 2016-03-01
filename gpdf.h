@@ -47,7 +47,15 @@ typedef enum
     gpdf_size_t;
 
 typedef enum
-    {SIZE_PAGE    = 3,
+    {SIZE_A0,
+     SIZE_A1,
+     SIZE_A2,
+     SIZE_A3,
+     SIZE_A4}
+    gpdf_page_size_t;
+
+typedef enum
+    {SIZE_PAGE    = SIZE_A3,
      SIZE_FONT    = 8,
      SIZE_MARGIN  = 20,
      SIZE_INSET   = 10}

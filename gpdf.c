@@ -33,14 +33,14 @@
 #include "hpdf.h"
 #include "gpdf.h"
 
-// static const int pagesizes[5][2] =
-//     {{840, 1188},
-//      {594, 840},
-//      {420, 594},
-//      {297, 420},
-//      {210, 297}};
+static const int pagesizes[5][2] =
+    {{840, 1188},
+     {594, 840},
+     {420, 594},
+     {297, 420},
+     {210, 297}};
 
-// static const float muliplier = 72.0 / 25.4;
+static const double multiplier = 72.0 / 25.4;
 
 indi inds[SIZE_INDS] = {};
 fam  fams[SIZE_FAMS] = {};
@@ -67,7 +67,8 @@ bool boldnames = false;
 char file[SIZE_NAME];
 char *progname;
 
-float fs = SIZE_FONT;
+float fontsize = SIZE_FONT;
+int   pagesize = SIZE_PAGE;
 
 // jmp_buf for arcane HPDF error handler
 
@@ -77,11 +78,15 @@ int main(int argc, char *argv[])
 {
     int c;
 
+    // Store program name for error messages
+
+    progname = argv[0];
+
     // Check args
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "wf:")) != -1)
+    while ((c = getopt(argc, argv, "wf:p:")) != -1)
     {
 	switch (c)
 	{
@@ -94,20 +99,35 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'f':
-	    fs = atof(optarg);
+	    fontsize = atof(optarg);
+	    break;
+
+	case 'p':
+	    if ((tolower(optarg[0]) == 'a') &&
+		(atoi(&optarg[1]) >= 0) && (atoi(&optarg[1]) <= 4))
+		pagesize = atoi(&optarg[1]);
+
+	    else
+	    {
+		fprintf (stderr, "%s: '%s' is not a valid page size\n",
+			 progname, optarg);
+		return GPDF_ERROR;
+	    }
 	    break;
 
 	case '?':
 	    if (optopt == 'f')
-		fprintf (stderr, "Option -%c requires an argument\n", optopt);
+		fprintf (stderr, "%s: Option -%c requires an argument\n",
+			 progname, optopt);
 
 	    else if (isprint (optopt))
-		fprintf (stderr, "Unknown option `-%c'\n", optopt);
+		fprintf (stderr, "%s: Unknown option `-%c'\n",
+			 progname, optopt);
 
 	    else
 		fprintf (stderr,
-			 "Unknown option character `\\x%x'\n",
-			 optopt);
+			 "%s: Unknown option character `\\x%x'\n",
+			 progname, optopt);
 	    return GPDF_ERROR;
 
 	default:
@@ -115,16 +135,14 @@ int main(int argc, char *argv[])
 	}
     }
 
-    // Store program name for error messages
-
-    progname = argv[0];
-
     if (argv[optind] == NULL)
     {
-	fprintf(stderr, "Usage: %s [-w] [-f fontsize] <infile>\n\n", progname);
+	fprintf(stderr,
+		"Usage: %s [-w] [-p pagesize] [-f fontsize] <infile>\n\n",
+		progname);
 	fprintf(stderr, "  -w - write text file and layout page\n");
 	// fprintf(stderr, "  -b - surnames in bold text\n");
-	// fprintf(stderr, "  -p - set page size A0 -- A4\n");
+	fprintf(stderr, "  -p - set page size A0 -- A4\n");
 	fprintf(stderr, "  -f - set font size in points (1/72 inch)\n");
 
 	return GPDF_ERROR;
@@ -795,9 +813,10 @@ void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
 // Draw individual info
 
 int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
-		     int fs, float height, float slotwidth, float slotheight)
+		     float fontsize, float height,
+		     float slotwidth, float slotheight)
 {
-    HPDF_Page_SetFontAndSize(page, font, fs);
+    HPDF_Page_SetFontAndSize(page, font, fontsize);
     HPDF_Page_BeginText(page);
 
     // Iterate through the individuals
@@ -836,9 +855,9 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			*endn = '\0';
 
 		    HPDF_Page_TextOut(page, x, y, givn);
-		    HPDF_Page_SetFontAndSize(page, bold, fs);
+		    HPDF_Page_SetFontAndSize(page, bold, fontsize);
 		    HPDF_Page_ShowText(page, surn);
-		    HPDF_Page_SetFontAndSize(page, font, fs);
+		    HPDF_Page_SetFontAndSize(page, font, fontsize);
 		}
 
 		else
@@ -856,9 +875,9 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		    else
 			HPDF_Page_ShowText(page, " ");
 
-		    HPDF_Page_SetFontAndSize(page, bold, fs);
+		    HPDF_Page_SetFontAndSize(page, bold, fontsize);
 		    HPDF_Page_ShowText(page, inds[i].surn);
-		    HPDF_Page_SetFontAndSize(page, font, fs);
+		    HPDF_Page_SetFontAndSize(page, font, fontsize);
 		}
 
 		// Birth
@@ -867,7 +886,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		    (inds[i].birt.plac[0] != '\0'))
 		{
 		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		    HPDF_Page_ShowText(page, "b   ");
 		    HPDF_Page_ShowText(page, inds[i].birt.date);
 		    HPDF_Page_ShowText(page, " ");
@@ -877,7 +896,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		else if (inds[i].birt.date[0] != '\0')
 		{
 		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		    HPDF_Page_ShowText(page, "b   ");
 		    HPDF_Page_ShowText(page, inds[i].birt.date);	
 		}
@@ -885,7 +904,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		else if (inds[i].birt.plac[0] != '\0')
 		{
 		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		    HPDF_Page_ShowText(page, "b   ");
 		    HPDF_Page_ShowText(page, inds[i].birt.plac);	
 		}
@@ -895,7 +914,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		if (inds[i].occu[0] != '\0')
 		{
 		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		    HPDF_Page_ShowText(page, "o   ");
 		    HPDF_Page_ShowText(page, inds[i].occu);
 		}
@@ -914,7 +933,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 				(famp->marr.plac[0] != '\0'))
 			    {
 				HPDF_Page_MoveToNextLine(page);
-				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_MoveTextPos(page, 0, -fontsize);
 				HPDF_Page_ShowText(page, "m  ");
 				HPDF_Page_ShowText(page, famp->marr.date);
 				HPDF_Page_ShowText(page, " ");
@@ -924,7 +943,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			    else if (famp->marr.date[0] != '\0')
 			    {
 				HPDF_Page_MoveToNextLine(page);
-				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_MoveTextPos(page, 0, -fontsize);
 				HPDF_Page_ShowText(page, "m  ");
 				HPDF_Page_ShowText(page, famp->marr.date);	
 			    }
@@ -932,7 +951,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			    else if (famp->marr.plac[0] != '\0')
 			    {
 				HPDF_Page_MoveToNextLine(page);
-				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_MoveTextPos(page, 0, -fontsize);
 				HPDF_Page_ShowTextNextLine(page, "m  ");
 				HPDF_Page_ShowText(page, famp->marr.plac);	
 			    }
@@ -940,7 +959,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			    // else if (famp->marr.yes)
 			    // {
 			    //     HPDF_Page_MoveToNextLine(page);
-			    //     HPDF_Page_MoveTextPos(page, 0, -fs);
+			    //     HPDF_Page_MoveTextPos(page, 0, -fontsize);
 			    //     HPDF_Page_ShowText(page, "m");
 			    // }
 
@@ -948,7 +967,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 				(famp->div.plac[0] != '\0'))
 			    {
 				HPDF_Page_MoveToNextLine(page);
-				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_MoveTextPos(page, 0, -fontsize);
 				if ((famp->marr.date[0] == '\0') &&
 				    (famp->marr.plac[0] == '\0'))
 				    HPDF_Page_ShowText(page, "m, dv ");
@@ -963,7 +982,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			    else if (famp->div.date[0] != '\0')
 			    {
 				HPDF_Page_MoveToNextLine(page);
-				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_MoveTextPos(page, 0, -fontsize);
 				if ((famp->marr.date[0] == '\0') &&
 				    (famp->marr.plac[0] == '\0'))
 				    HPDF_Page_ShowText(page, "m, dv ");
@@ -976,7 +995,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			    else if (famp->div.plac[0] != '\0')
 			    {
 				HPDF_Page_MoveToNextLine(page);
-				HPDF_Page_MoveTextPos(page, 0, -fs);
+				HPDF_Page_MoveTextPos(page, 0, -fontsize);
 				if ((famp->marr.date[0] == '\0') &&
 				    (famp->marr.plac[0] == '\0'))
 				    HPDF_Page_ShowText(page, "m, dv ");
@@ -1001,7 +1020,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		    char s[16];
 
 		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		    sprintf(s, "c   %d", inds[i].nchi);
 		    HPDF_Page_ShowText(page, s);
 		}
@@ -1012,7 +1031,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		    (inds[i].deat.plac[0] != '\0'))
 		{
 		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		    HPDF_Page_ShowText(page, "d   ");
 		    HPDF_Page_ShowText(page, inds[i].deat.date);
 		    HPDF_Page_ShowText(page, " ");
@@ -1022,7 +1041,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		else if (inds[i].deat.date[0] != '\0')
 		{
 		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		    HPDF_Page_ShowText(page, "d   ");
 		    HPDF_Page_ShowText(page, inds[i].deat.date);	
 		}
@@ -1030,7 +1049,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		else if (inds[i].deat.plac[0] != '\0')
 		{
 		    HPDF_Page_MoveToNextLine(page);
-		    HPDF_Page_MoveTextPos(page, 0, -fs);
+		    HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		    HPDF_Page_ShowText(page, "d   ");
 		    HPDF_Page_ShowText(page, inds[i].deat.plac);	
 		}
@@ -1038,7 +1057,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		// else if (inds[i].deat.yes)
 		// {
 		// 	HPDF_Page_MoveToNextLine(page);
-		// 	HPDF_Page_MoveTextPos(page, 0, -fs);
+		// 	HPDF_Page_MoveTextPos(page, 0, -fontsize);
 		// 	HPDF_Page_ShowTextNextLine(page, "d");
 		// }
 	    }
@@ -1201,11 +1220,13 @@ int draw_pdf()
 
     // Add a new page object
     page = HPDF_AddPage(pdf);
-    HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A3, HPDF_PAGE_LANDSCAPE);
+
+    HPDF_Page_SetWidth(page, pagesizes[pagesize][1] * multiplier);
+    HPDF_Page_SetHeight(page, pagesizes[pagesize][0] * multiplier);
 
     height = HPDF_Page_GetHeight(page);
     width  = HPDF_Page_GetWidth(page);
-
+    printf("Width %1.2f  Height %1.2f\n", height, width);
     // Draw the border of the page
     HPDF_Page_SetLineWidth(page, 0.6);
     HPDF_Page_Rectangle(page, SIZE_MARGIN, SIZE_MARGIN,
@@ -1219,7 +1240,7 @@ int draw_pdf()
 	// Horizontal slots on the page
 
 	float slotwidth = (width - (SIZE_MARGIN * 4)) / (gens + 1);
-	float slotheight = fs * 6;
+	float slotheight = fontsize * 6;
 
 	for (int i = 1; i < gens + 1; i++)
 	{
@@ -1241,7 +1262,7 @@ int draw_pdf()
 	}
 
 	HPDF_Page_Stroke(page);
-	HPDF_Page_SetFontAndSize(page, font, fs);
+	HPDF_Page_SetFontAndSize(page, font, fontsize);
 	HPDF_Page_BeginText(page);
 
 	for (int i = 0; i < slots; i++)
@@ -1284,11 +1305,12 @@ int draw_pdf()
 			  SIZE_MARGIN + 5, title);
 	HPDF_Page_EndText(page);
 
-	float slotheight = fs * 6;
+	float slotheight = fontsize * 6;
 	float slotwidth = (width - (SIZE_MARGIN * 2) -
 			   (SIZE_INSET * 2)) / (gens + 1);
 
-	draw_individuals(page, font, bold, fs, height, slotwidth, slotheight);
+	draw_individuals(page, font, bold, fontsize, height,
+			 slotwidth, slotheight);
 	draw_family_lines(page, height, slotwidth, slotheight);
 
 	strcpy(filename, file);
@@ -1297,6 +1319,7 @@ int draw_pdf()
 	// Save file
 
 	HPDF_SaveToFile(pdf, filename);
+	HPDF_Free(pdf);
     }
 
     return GPDF_SUCCESS;
