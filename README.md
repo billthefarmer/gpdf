@@ -27,22 +27,23 @@ already installed. On Linux Mint thats:
 ```
 $ sudo apt install libz-dev libpng-dev
 ```
-Mingw32 appears not to contain `getline()`, which is a bit
+MingW32 appears not to contain `getline()`, which is a bit
 essential. An implementation was discovered online here:
 https://opensource.apple.com/source/cvs/cvs-19/cvs/lib/getline.c. This
 is not needed on linux and not on OSX either.
 
 To run on windows you will need to extricate libpng and zlib from
-Mingw32 and put them in the execution folder with libHaru.
+MingW32 and put them in the execution folder with libHaru.
 ```
 Usage: ./gpdf [-w] [-f fontsize] <infile>
 
   -w - write text file and layout page
   -f - set font size in points (1/72 inch)
 ```
-To use the program, use the -w switch for the initial run like this:
+The font size defaults to 8 point and the page size to A3. To use the
+program, use the -w switch for the initial run like this:
 ```
-$ gpdf -w <infile.ged>``
+$ gpdf -w <infile.ged>
 ```
 This will produce an A3 pdf file with a grid of slots with x, y
 positions, and a text file with a list of ids, two zeros, the
@@ -61,7 +62,6 @@ file. Like this:
    6  2  2    2      /Adoptive mother/
    7  0  3    0      /Child 3/
    8  0  0    1      /2nd Wife/
-...
 ```
 The suggested x position in the file is based on the calculated
 generation of the individual based on the number of generations of
@@ -74,7 +74,10 @@ chart.
 
 You can do test runs with only a few positions filled in to see what
 it looks like. Individuals with two zeros for the position won't
-appear.
+appear. The tree below has eight generations and 70 individuals, with
+one generation containing 18 individuals. It would be possible to fit
+more people on an A3 page, but doing it without the lines crossing
+becomes more difficult.
 
 ![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/whatamess.png)
 
