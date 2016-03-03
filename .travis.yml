@@ -9,7 +9,7 @@ before_install:
   - ./configure
   - make
   - sudo make install
-  - cd
+  - cd ..
 
 script:
   - make
