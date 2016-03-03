@@ -1,4 +1,4 @@
-# Gpdf
+# Gpdf [![Build Status](https://travis-ci.org/billthefarmer/gpdf.svg?branch=master)](https://travis-ci.org/billthefarmer/gpdf)
 ## GEDCOM genealogy pdf chart creation
 
 Read and parse a GEDCOM format text file into memory and produce a
