@@ -2,14 +2,14 @@
 language: c
 
 before_install:
-  - git clone https://github.com/libharu/libharu.git
-  - cd libharu
+  - git clone https://github.com/libharu/libharu.git $HOME/libharu
+  - cd $HOME/libharu
   - git checkout 2_3
   - ./buildconf.sh --force
   - ./configure
   - make
   - sudo make install
-  - cd ..
+  - cd $HOME/billthefarmer/gpdf
 
 script:
   - make
