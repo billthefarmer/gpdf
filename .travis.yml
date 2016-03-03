@@ -2,15 +2,14 @@
 language: c
 
 before_install:
-  - pwd
-  - git clone https://github.com/libharu/libharu.git $HOME/libharu
-  - cd $HOME/libharu
+  - git clone https://github.com/libharu/libharu.git libharu
+  - cd libharu
   - git checkout 2_3
   - ./buildconf.sh --force
   - ./configure
   - make
   - sudo make install
-  - cd $HOME/gpdf
+  - cd ..
 
 script:
   - make
