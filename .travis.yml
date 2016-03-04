@@ -6,9 +6,8 @@ os:
   - osx
 
 before_install:
-  - git clone https://github.com/libharu/libharu.git libharu
+  - git clone -b 2_3 https://github.com/libharu/libharu.git libharu
   - cd libharu
-  - git checkout 2_3
   - ./buildconf.sh --force
   - ./configure
   - make
