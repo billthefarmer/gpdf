@@ -198,7 +198,7 @@ int find_individual(char *xref)
     // Use next slot, save xref and return id
 
     inds[indindex].id = indindex;
-    strcpy(inds[indindex].xref, xref);
+    strncpy(inds[indindex].xref, xref, SIZE_XREF - 1);
     return inds[indindex++].id;
 }
 
@@ -222,14 +222,14 @@ int find_family(char *xref)
     // Use next slot, save xref and return id
 
     fams[famindex].id = famindex;
-    strcpy(fams[famindex].xref, xref);
+    strncpy(fams[famindex].xref, xref, SIZE_XREF - 1);
     return fams[famindex++].id;
 }
 
 int parse_gedcom_file(char *filename)
 {
     FILE *infile = NULL;;
-    char line[256];
+    char line[SIZE_LINE];
     char *linep = line;
     size_t size = sizeof(line);
     int status;
@@ -246,8 +246,8 @@ int parse_gedcom_file(char *filename)
     while (getline(&linep, &size, infile) != -1)
     {
 	int type = 0;
-	char first[64] = {0};
-	char second[64] = {0};
+	char first[SIZE_NAME] = {0};
+	char second[SIZE_NAME] = {0};
 
 	// parse fields
 
@@ -711,7 +711,7 @@ int find_generations()
 
 int write_textfile()
 {
-    char filename[256];
+    char filename[SIZE_LINE];
     FILE *textfile;
 
     strcpy(filename, file);
@@ -760,8 +760,8 @@ int write_textfile()
 
 int read_textfile()
 {
-    char filename[256];
-    char line[256];
+    char filename[SIZE_LINE];
+    char line[SIZE_LINE];
     char *linep = line;
     size_t size = sizeof(line);
     FILE *textfile;

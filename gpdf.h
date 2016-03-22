@@ -32,6 +32,7 @@
 
 typedef enum
     {SIZE_INDS = 256,
+     SIZE_LINE = 256,
      SIZE_FAMS = 128,
      SIZE_NAME = 64,
      SIZE_GIVN = 32,
