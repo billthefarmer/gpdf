@@ -6,7 +6,7 @@ os:
   - osx
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq -y; sudo apt-get install g++ -qq -y; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -y; sudo apt-get install g++ -y; fi
   - git clone -b 2_3 https://github.com/libharu/libharu.git libharu
   - cd libharu
   - ./buildconf.sh --force
