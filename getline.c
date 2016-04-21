@@ -52,7 +52,7 @@ int getstr (char **lineptr, size_t *n, FILE *stream,
     if (!*lineptr)
     {
 	*n = MIN_CHUNK;
-	*lineptr = malloc (*n);
+	*lineptr = (char *)malloc (*n);
 	if (!*lineptr)
 	{
 	    errno = ENOMEM;
@@ -83,7 +83,7 @@ int getstr (char **lineptr, size_t *n, FILE *stream,
 		*n += MIN_CHUNK;
 
 	    nchars_avail = *n + *lineptr - read_pos;
-	    *lineptr = realloc (*lineptr, *n);
+	    *lineptr = (char *)realloc (*lineptr, *n);
 	    if (!*lineptr)
 	    {
 		errno = ENOMEM;

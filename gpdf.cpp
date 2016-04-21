@@ -42,30 +42,10 @@ static const int pagesizes[5][2] =
 
 static const double multiplier = 72.0 / 25.4;
 
-indi inds[SIZE_INDS] = {};
-faml fams[SIZE_FAMS] = {};
-
-indi *indp;
-faml *famp;
-
-int state = STATE_NONE;
-int date = DATE_NONE;
-int plac = PLAC_NONE;
-
-int fmss = 0;
-int chln = 0;
-int gens = 0;
-
-// Start individuals and families at index 1, then 0 is an unused slot
-
-int indindex = 1;
-int famindex = 1;
+char *progname;
 
 bool writetext = false;
 bool boldnames = false;
-
-char file[SIZE_NAME];
-char *progname;
 
 float fontsize = SIZE_FONT;
 int   pagesize = SIZE_PAGE;
@@ -73,6 +53,21 @@ int   pagesize = SIZE_PAGE;
 // jmp_buf for arcane HPDF error handler
 
 jmp_buf env;
+
+// Gpdf object
+
+Gpdf gpdf(0);
+
+// Error handler from examples
+
+void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
+		   void *user_data __attribute__ ((unused)))
+{
+    fprintf (stderr, "%s: libHaru error_no = %04X, detail_no = %u\n",
+	     progname, (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
+
+    longjmp(env, 1);
+}
 
 int main(int argc, char *argv[])
 {
@@ -148,15 +143,20 @@ int main(int argc, char *argv[])
 	return GPDF_ERROR;
     }
 
+    return gpdf.run(argv[optind]);
+}
+
+int Gpdf::run(char *path)
+{
     int result;
 
     // Parse the input file
 
-    result = parse_gedcom_file(argv[optind]);
+    result = parse_gedcom_file(path);
 
     if (result != GPDF_SUCCESS)
     {
-	fprintf(stderr, "%s: Couldn't parse %s\n", progname, argv[optind]);
+	fprintf(stderr, "%s: Couldn't parse %s\n", progname, path);
 	return GPDF_ERROR;
     }
 
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 
 // Resolve GEDCOM xrefs
 
-int find_individual(char *xref)
+int Gpdf::find_individual(char *xref)
 {
     // Overflow check
 
@@ -202,7 +202,7 @@ int find_individual(char *xref)
     return inds[indindex++].id;
 }
 
-int find_family(char *xref)
+int Gpdf::find_family(char *xref)
 {
     // Overflow check
 
@@ -226,7 +226,7 @@ int find_family(char *xref)
     return fams[famindex++].id;
 }
 
-int parse_gedcom_file(char *filename)
+int Gpdf::parse_gedcom_file(char *filename)
 {
     FILE *infile = NULL;;
     char line[SIZE_LINE];
@@ -265,8 +265,8 @@ int parse_gedcom_file(char *filename)
 	    status = attrib(first, second);
 	    break;
 
-	case TYPE_ADDN:
-	    status = additn(first, second);
+	case TYPE_PROP:
+	    status = prop(first, second);
 	    break;
 	}
 
@@ -282,7 +282,7 @@ int parse_gedcom_file(char *filename)
     return GPDF_SUCCESS;
 }
 
-int object(char *first, char *second)
+int Gpdf::object(char *first, char *second)
 {
     // Head
 
@@ -343,7 +343,7 @@ int object(char *first, char *second)
     return GPDF_SUCCESS;
 }
 
-int attrib(char *first, char *second)
+int Gpdf::attrib(char *first, char *second)
 {
     switch (state)
     {
@@ -522,7 +522,7 @@ int attrib(char *first, char *second)
     return GPDF_SUCCESS;
 }
 
-int additn(char *first, char *second)
+int Gpdf::prop(char *first, char *second)
 {
     switch (state)
     {
@@ -616,7 +616,7 @@ int additn(char *first, char *second)
     return GPDF_SUCCESS;
 }
 
-int find_generations()
+int Gpdf::find_generations()
 {
     // Iterate through the individuals
 
@@ -709,7 +709,7 @@ int find_generations()
     return GPDF_SUCCESS;
 }
 
-int write_textfile()
+int Gpdf::write_textfile()
 {
     char filename[SIZE_LINE];
     FILE *textfile;
@@ -758,7 +758,7 @@ int write_textfile()
     return GPDF_SUCCESS;
 }
 
-int read_textfile()
+int Gpdf::read_textfile()
 {
     char filename[SIZE_LINE];
     char line[SIZE_LINE];
@@ -799,22 +799,11 @@ int read_textfile()
     return GPDF_SUCCESS;
 }
 
-// Error handler from examples
-
-void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
-		   void *user_data __attribute__ ((unused)))
-{
-    fprintf (stderr, "%s: libHaru error_no = %04X, detail_no = %u\n",
-	     progname, (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
-
-    longjmp(env, 1);
-}
-
 // Draw individual info
 
-int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
-		     float fontsize, float height,
-		     float slotwidth, float slotheight)
+int Gpdf::draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
+			   float fontsize, float height,
+			   float slotwidth, float slotheight)
 {
     HPDF_Page_SetFontAndSize(page, font, fontsize);
     HPDF_Page_BeginText(page);
@@ -1071,8 +1060,8 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 
 // Draw family lines
 
-int draw_family_lines(HPDF_Page page, float height,
-		      float slotwidth, float slotheight)
+int Gpdf::draw_family_lines(HPDF_Page page, float height,
+			    float slotwidth, float slotheight)
 {
     // Draw individual famc and fams connections
 
@@ -1189,7 +1178,7 @@ int draw_family_lines(HPDF_Page page, float height,
 
 // Draw the chart
 
-int draw_pdf()
+int Gpdf::draw_pdf()
 {
     HPDF_Doc  pdf;
     HPDF_Page page;

@@ -70,7 +70,7 @@ typedef enum
 typedef enum
     {TYPE_OBJECT,
      TYPE_ATTR,
-     TYPE_ADDN}
+     TYPE_PROP}
     gpdf_type_t;
 
 typedef enum
@@ -101,7 +101,7 @@ typedef struct
     bool yes;
     char date[SIZE_DATE];
     char plac[SIZE_PLAC];
-} birt, deat, marr, divc;
+} birt_t, deat_t, marr_t, divc_t;
 
 typedef struct
 {
@@ -122,32 +122,71 @@ typedef struct indi_s
     char nick[SIZE_NICK];
     char occu[SIZE_OCCU];
     char sex[SIZE_SEX];
-    birt birt;
-    deat deat;
-    struct fam_s *famc;
-    struct fam_s *fams[SIZE_FMSS];
+    birt_t birt;
+    deat_t deat;
+    struct faml_s *famc;
+    struct faml_s *fams[SIZE_FMSS];
 } indi;
 
-typedef struct fam_s
+typedef struct faml_s
 {
     int id;
     indi *husb;
     indi *wife;
     char xref[SIZE_XREF];
-    marr marr;
-    divc divc;
+    marr_t marr;
+    divc_t divc;
     indi *chil[SIZE_CHLN];
 } faml;
 
-// Functions
+class Gpdf
+{
+public:
 
-int parse_gedcom_file(char *);
-int find_generations();
-int write_textfile();
-int draw_pdf();
-int object(char *, char *);
-int attrib(char *, char *);
-int additn(char *, char *);
+    Gpdf(int) {}
+    ~Gpdf() {}
+
+    int run(char *);
+
+private:
+
+    indi inds[SIZE_INDS] = {};
+    faml fams[SIZE_FAMS] = {};
+
+    indi *indp;
+    faml *famp;
+
+    int state = STATE_NONE;
+    int date = DATE_NONE;
+    int plac = PLAC_NONE;
+
+    int fmss = 0;
+    int chln = 0;
+    int gens = 0;
+
+    // Start individuals and families at index 1, then 0 is an unused slot
+
+    int indindex = 1;
+    int famindex = 1;
+
+    char file[SIZE_NAME];
+
+    // Functions
+
+    int parse_gedcom_file(char *);
+    int find_individual(char *);
+    int find_family(char *);
+    int find_generations();
+    int read_textfile();
+    int write_textfile();
+    int draw_individuals(HPDF_Page, HPDF_Font, HPDF_Font,
+			 float, float, float, float);
+    int draw_family_lines(HPDF_Page, float, float, float);
+    int draw_pdf();
+    int object(char *, char *);
+    int attrib(char *, char *);
+    int prop(char *, char *);
+};
 
 #ifdef __MINGW32__
 int getline(char **, size_t *, FILE *);
