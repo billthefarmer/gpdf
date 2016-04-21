@@ -43,10 +43,10 @@ static const int pagesizes[5][2] =
 static const double multiplier = 72.0 / 25.4;
 
 indi inds[SIZE_INDS] = {};
-fam  fams[SIZE_FAMS] = {};
+faml fams[SIZE_FAMS] = {};
 
 indi *indp;
-fam  *famp;
+faml *famp;
 
 int state = STATE_NONE;
 int date = DATE_NONE;
@@ -333,7 +333,7 @@ int object(char *first, char *second)
 
 	famp = &fams[id];
 	famp->id = id;
-	state = STATE_FAM;
+	state = STATE_FAML;
 	chln = 0;
     }
 
@@ -439,7 +439,7 @@ int attrib(char *first, char *second)
 
 	// Family
 
-    case STATE_FAM:
+    case STATE_FAML:
 	if (strcmp(first, "HUSB") == 0)
 	{
 	    int id = 0;
@@ -506,9 +506,9 @@ int attrib(char *first, char *second)
 
 	else if (strcmp(first, "DIV") == 0)
 	{
-	    famp->div.yes = true;
-	    date = DATE_DIV;
-	    plac = PLAC_DIV;
+	    famp->divc.yes = true;
+	    date = DATE_DIVC;
+	    plac = PLAC_DIVC;
 	}
 
 	else
@@ -580,7 +580,7 @@ int additn(char *first, char *second)
 
 	// Family
 
-    case STATE_FAM:
+    case STATE_FAML:
 	{
 	    if (strcmp(first, "DATE") == 0)
 	    {
@@ -590,8 +590,8 @@ int additn(char *first, char *second)
 		    strncpy(famp->marr.date, second, SIZE_DATE - 1);
 		    break;
 
-		case DATE_DIV:
-		    strncpy(famp->div.date, second, SIZE_DATE - 1);
+		case DATE_DIVC:
+		    strncpy(famp->divc.date, second, SIZE_DATE - 1);
 		    break;
 		}
 	    }
@@ -604,8 +604,8 @@ int additn(char *first, char *second)
 		    strncpy(famp->marr.plac, second, SIZE_PLAC - 1);
 		    break;
 
-		case PLAC_DIV:
-		    strncpy(famp->div.plac, second, SIZE_PLAC - 1);
+		case PLAC_DIVC:
+		    strncpy(famp->divc.plac, second, SIZE_PLAC - 1);
 		    break;
 		}
 		break;
@@ -629,7 +629,7 @@ int find_generations()
 	    if (inds[i].famc != NULL)
 	    {
 		int n = 0;
-		fam *famp = inds[i].famc;
+		faml *famp = inds[i].famc;
 
 		// Follow the links
 
@@ -927,7 +927,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 		    {
 			if (inds[i].fams[j] != NULL)
 			{
-			    fam *famp = inds[i].fams[j];
+			    faml *famp = inds[i].fams[j];
 
 			    if ((famp->marr.date[0] != '\0') &&
 				(famp->marr.plac[0] != '\0'))
@@ -963,8 +963,8 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 			    //     HPDF_Page_ShowText(page, "m");
 			    // }
 
-			    if ((famp->div.date[0] != '\0') &&
-				(famp->div.plac[0] != '\0'))
+			    if ((famp->divc.date[0] != '\0') &&
+				(famp->divc.plac[0] != '\0'))
 			    {
 				HPDF_Page_MoveToNextLine(page);
 				HPDF_Page_MoveTextPos(page, 0, -fontsize);
@@ -974,12 +974,12 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 
 				else
 				    HPDF_Page_ShowText(page, "dv ");
-				HPDF_Page_ShowText(page, famp->div.date);
+				HPDF_Page_ShowText(page, famp->divc.date);
 				HPDF_Page_ShowText(page, " ");
-				HPDF_Page_ShowText(page, famp->div.plac);
+				HPDF_Page_ShowText(page, famp->divc.plac);
 			    }
 
-			    else if (famp->div.date[0] != '\0')
+			    else if (famp->divc.date[0] != '\0')
 			    {
 				HPDF_Page_MoveToNextLine(page);
 				HPDF_Page_MoveTextPos(page, 0, -fontsize);
@@ -989,10 +989,10 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 
 				else
 				    HPDF_Page_ShowText(page, "dv ");
-				HPDF_Page_ShowText(page, famp->div.date);	
+				HPDF_Page_ShowText(page, famp->divc.date);	
 			    }
 
-			    else if (famp->div.plac[0] != '\0')
+			    else if (famp->divc.plac[0] != '\0')
 			    {
 				HPDF_Page_MoveToNextLine(page);
 				HPDF_Page_MoveTextPos(page, 0, -fontsize);
@@ -1002,10 +1002,10 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 
 				else
 				    HPDF_Page_ShowTextNextLine(page, "dv ");
-				HPDF_Page_ShowText(page, famp->div.plac);	
+				HPDF_Page_ShowText(page, famp->divc.plac);	
 			    }
 
-			    // else if (famp->div.yes)
+			    // else if (famp->divc.yes)
 			    // {
 			    //     HPDF_Page_ShowText(page, ", d");
 			    // }

@@ -76,7 +76,7 @@ typedef enum
 typedef enum
     {STATE_HEAD,
      STATE_INDI,
-     STATE_FAM,
+     STATE_FAML,
      STATE_NONE = -1}
     gpdf_state_t;
 
@@ -84,7 +84,7 @@ typedef enum
     {DATE_BIRT,
      DATE_DEAT,
      DATE_MARR,
-     DATE_DIV,
+     DATE_DIVC,
      DATE_NONE = -1}
     gpdf_date_t;
 
@@ -92,7 +92,7 @@ typedef enum
     {PLAC_BIRT,
      PLAC_DEAT,
      PLAC_MARR,
-     PLAC_DIV,
+     PLAC_DIVC,
      PLAC_NONE = -1}
     gpdf_plac_t;
 
@@ -135,9 +135,9 @@ typedef struct fam_s
     indi *wife;
     char xref[SIZE_XREF];
     marr marr;
-    divc div;
+    divc divc;
     indi *chil[SIZE_CHLN];
-} fam;
+} faml;
 
 // Functions
 
