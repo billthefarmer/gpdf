@@ -42,7 +42,7 @@ static const int pagesizes[5][2] =
 
 static const double multiplier = 72.0 / 25.4;
 
-    char *progname;
+char *progname;
 
 // jmp_buf for arcane HPDF error handler
 
