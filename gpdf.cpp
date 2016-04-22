@@ -42,21 +42,11 @@ static const int pagesizes[5][2] =
 
 static const double multiplier = 72.0 / 25.4;
 
-char *progname;
-
-bool writetext = false;
-bool boldnames = false;
-
-float fontsize = SIZE_FONT;
-int   pagesize = SIZE_PAGE;
+    char *progname;
 
 // jmp_buf for arcane HPDF error handler
 
 jmp_buf env;
-
-// Gpdf object
-
-Gpdf gpdf(0);
 
 // Error handler from examples
 
@@ -70,6 +60,15 @@ void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
 }
 
 int main(int argc, char *argv[])
+{
+    // Gpdf object
+
+    Gpdf gpdf(0);
+
+    return gpdf.main(argc, argv);
+}
+
+int Gpdf::main(int argc, char *argv[])
 {
     int c;
 
@@ -143,20 +142,15 @@ int main(int argc, char *argv[])
 	return GPDF_ERROR;
     }
 
-    return gpdf.run(argv[optind]);
-}
-
-int Gpdf::run(char *path)
-{
     int result;
 
     // Parse the input file
 
-    result = parse_gedcom_file(path);
+    result = parse_gedcom_file(argv[optind]);
 
     if (result != GPDF_SUCCESS)
     {
-	fprintf(stderr, "%s: Couldn't parse %s\n", progname, path);
+	fprintf(stderr, "%s: Couldn't parse %s\n", progname, argv[optind]);
 	return GPDF_ERROR;
     }
 

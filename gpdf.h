@@ -146,7 +146,7 @@ public:
     Gpdf(int) {}
     ~Gpdf() {}
 
-    int run(char *);
+    int main(int, char**);
 
 private:
 
@@ -164,10 +164,17 @@ private:
     int chln = 0;
     int gens = 0;
 
-    // Start individuals and families at index 1, then 0 is an unused slot
+    // Start individuals and families at index 1, then 0 is an unused
+    // slot
 
     int indindex = 1;
     int famindex = 1;
+
+    bool writetext = false;
+    bool boldnames = false;
+
+    float fontsize = SIZE_FONT;
+    int   pagesize = SIZE_PAGE;
 
     char file[SIZE_NAME];
 
