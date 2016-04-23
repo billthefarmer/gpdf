@@ -147,6 +147,7 @@ public:
     ~Gpdf() {}
 
     int main(int, char**);
+    void error(HPDF_STATUS, HPDF_STATUS);
 
 private:
 
@@ -177,6 +178,12 @@ private:
     int   pagesize = SIZE_PAGE;
 
     char file[SIZE_NAME];
+
+    char *progname;
+
+    // jmp_buf for arcane HPDF error handler
+
+    jmp_buf env;
 
     // Functions
 

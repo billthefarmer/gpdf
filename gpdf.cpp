@@ -42,23 +42,6 @@ static const int pagesizes[5][2] =
 
 static const double multiplier = 72.0 / 25.4;
 
-char *progname;
-
-// jmp_buf for arcane HPDF error handler
-
-jmp_buf env;
-
-// Error handler from examples
-
-void error_handler(HPDF_STATUS error_no, HPDF_STATUS   detail_no,
-		   void *user_data __attribute__ ((unused)))
-{
-    fprintf (stderr, "%s: libHaru error_no = %04X, detail_no = %u\n",
-	     progname, (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
-
-    longjmp(env, 1);
-}
-
 int main(int argc, char *argv[])
 {
     // Gpdf object
@@ -66,6 +49,24 @@ int main(int argc, char *argv[])
     Gpdf gpdf(0);
 
     return gpdf.main(argc, argv);
+}
+
+// Error handler from examples
+
+void error_handler(HPDF_STATUS error_no, HPDF_STATUS  detail_no,
+		   void *user_data)
+{
+    Gpdf *gpdf = (Gpdf *)user_data;
+
+    gpdf->error(error_no, detail_no);
+}
+
+void Gpdf::error(HPDF_STATUS error_no, HPDF_STATUS   detail_no)
+{
+    fprintf (stderr, "%s: libHaru error_no = %04X, detail_no = %u\n",
+	     progname, (HPDF_UINT)error_no, (HPDF_UINT)detail_no);
+
+    longjmp(env, 1);
 }
 
 int Gpdf::main(int argc, char *argv[])
@@ -1188,7 +1189,7 @@ int Gpdf::draw_pdf()
     title[0] = toupper(title[0]);
     strcat(title, " Family Tree");
 
-    pdf = HPDF_New(error_handler, NULL);
+    pdf = HPDF_New(error_handler, this);
     if (pdf == NULL)
     {
         fprintf(stderr, "%s: can't create PdfDoc object\n", progname);
