@@ -14,7 +14,7 @@ ifeq ($(OS), Windows_NT)
   endif
 
 else
-  CFLAGS = -g -W -Wall -std=gnu++03 -Iinclude -lhpdf
+  CFLAGS = -g -W -Wall -std=gnu++11 -Iinclude -lhpdf
 endif
 
 all:	gpdf
