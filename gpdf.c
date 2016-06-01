@@ -581,36 +581,34 @@ int additn(char *first, char *second)
 	// Family
 
     case STATE_FAML:
+	if (strcmp(first, "DATE") == 0)
 	{
-	    if (strcmp(first, "DATE") == 0)
+	    switch (date)
 	    {
-		switch (date)
-		{
-		case DATE_MARR:
-		    strncpy(famp->marr.date, second, SIZE_DATE - 1);
-		    break;
+	    case DATE_MARR:
+		strncpy(famp->marr.date, second, SIZE_DATE - 1);
+		break;
 
-		case DATE_DIVC:
-		    strncpy(famp->divc.date, second, SIZE_DATE - 1);
-		    break;
-		}
-	    }
-
-	    else if (strcmp(first, "PLAC") == 0)
-	    {
-		switch (plac)
-		{
-		case PLAC_MARR:
-		    strncpy(famp->marr.plac, second, SIZE_PLAC - 1);
-		    break;
-
-		case PLAC_DIVC:
-		    strncpy(famp->divc.plac, second, SIZE_PLAC - 1);
-		    break;
-		}
+	    case DATE_DIVC:
+		strncpy(famp->divc.date, second, SIZE_DATE - 1);
 		break;
 	    }
 	}
+
+	else if (strcmp(first, "PLAC") == 0)
+	{
+	    switch (plac)
+	    {
+	    case PLAC_MARR:
+		strncpy(famp->marr.plac, second, SIZE_PLAC - 1);
+		break;
+
+	    case PLAC_DIVC:
+		strncpy(famp->divc.plac, second, SIZE_PLAC - 1);
+		break;
+	    }
+	}
+	break;
     }
 
     return GPDF_SUCCESS;
