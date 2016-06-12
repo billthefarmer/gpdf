@@ -1250,10 +1250,10 @@ int draw_pdf()
 
 	// Vertical slots on the page
 
-	int slots = (height - (SIZE_MARGIN * 6)) / slotheight;
-	for (int i = 1; i < slots; i++)
+	int slots = (height - (SIZE_MARGIN * 4)) / slotheight;
+	for (int i = 1; i <= slots; i++)
 	{
-	    float y = (4 * SIZE_MARGIN) + (i * slotheight);
+	    float y = (2 * SIZE_MARGIN) + (i * slotheight);
 
 	    HPDF_Page_MoveTo(page, SIZE_MARGIN, y);
 	    HPDF_Page_LineTo(page, width - SIZE_MARGIN, y);
@@ -1263,14 +1263,14 @@ int draw_pdf()
 	HPDF_Page_SetFontAndSize(page, font, fontsize);
 	HPDF_Page_BeginText(page);
 
-	for (int i = 0; i < slots; i++)
+	for (int i = 0; i <= slots; i++)
 	{
 	    for (int j = 0; j < (gens + 1); j++)
 	    {
 		char s[16];
 
 		float x = (3 * SIZE_MARGIN) + (j * slotwidth);
-		float y = height - (6 * SIZE_MARGIN) - (i * slotheight);
+		float y = height - (3 * SIZE_MARGIN) - (i * slotheight);
 		sprintf(s, "%d, %d", j, i);
 		HPDF_Page_TextOut(page, x, y, s);
 	    }
