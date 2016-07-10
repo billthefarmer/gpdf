@@ -47,22 +47,22 @@ program, use the -w switch for the initial run like this:
 $ gpdf -w <infile.ged>
 ```
 This will produce an A3 pdf file with a grid of slots with x, y
-positions, and a text file with a list of ids, two zeros, the
+positions, and a text file with a list of ids, xrefs, two zeros, the
 suggested x position and the name for each individual in the
 file. Like this:
 
 ![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/slots.png)
 ```
-   0  posn suggested
-   0  x  y    x      Name
-   1  1  1    1      another name /surname/
-   2  1  2    1      /Wife/
-   3  0  1    0      /Child 1/
-   4  0  2    0      /Child 2/
-   5  2  1    2      /Father/
-   6  2  2    2      /Adoptive mother/
-   7  0  3    0      /Child 3/
-   8  0  0    1      /2nd Wife/
+   0        posn suggested
+   0  xref  x  y     x      Name
+   1  I1    1  1     1      another name /surname/
+   2  I2    1  2     1      /Wife/
+   3  I3    0  1     0      /Child 1/
+   4  I4    0  2     0      /Child 2/
+   5  I5    2  1     2      /Father/
+   6  I6    2  2     2      /Adoptive mother/
+   7  I7    0  3     0      /Child 3/
+   8  I8    0  0     1      /2nd Wife/
 ```
 The suggested x position in the file is based on the calculated
 generation of the individual based on the number of generations of
