@@ -739,15 +739,15 @@ int write_textfile()
 	return GPDF_SUCCESS;
     }
 
-    fprintf(textfile, "   0  posn  suggested\n");
-    fprintf(textfile, "   0  x  y      x     xref  Name\n");
+    fprintf(textfile, "   0        posn  suggested\n");
+    fprintf(textfile, "   0  xref  x  y      x      Name\n");
 
     for (int i = 1; i < SIZE_INDS; i++)
     {
 	if (inds[i].id > 0)
 	{
-	    fprintf(textfile, "%4d  0  0      %1.0f      %s  %s\n",
-		    inds[i].id, inds[i].posn.x, inds[i].xref, inds[i].name);
+	    fprintf(textfile, "%4d  %-4s  0  0     %2.0f      %s\n",
+		    inds[i].id, inds[i].xref, inds[i].posn.x, inds[i].name);
 	}
     }
 
@@ -778,17 +778,23 @@ int read_textfile()
     while (getline(&linep, &size, textfile) != -1)
     {
 	int id = 0;
+	char xref[SIZE_XREF];
 	float x = 0;
 	float y = 0;
 
-	// Parse first three fields, ignore the rest
+	// Parse first four fields, ignore the rest
 
-	sscanf(line, " %d %f %f", &id, &x, &y);
+	sscanf(line, " %d %s %f %f", &id, xref, &x, &y);
 
 	if (id > 0)
 	{
-	    inds[id].posn.x = x;
-	    inds[id].posn.y = y;
+	    id = find_individual(xref);
+
+	    if (id > 0)
+	    {
+		inds[id].posn.x = x;
+		inds[id].posn.y = y;
+	    }
 	}
     }
 
