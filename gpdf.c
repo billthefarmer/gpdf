@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
 	case 'r':
 	    readtext = true;
-	    strncpy(text, optarg, sizeof(read) - 1);
+	    strncpy(text, optarg, sizeof(text) - 1);
 	    break;
 
 	case 'f':
@@ -791,7 +791,7 @@ int write_textfile()
     {
 	if (inds[i].id > 0)
 	{
-	    fprintf(textfile, "%4d  %-4s %2.0f %3.1f    %2d      %s\n",
+	    fprintf(textfile, "%4d  %-4s %2.0f %4.1f   %2d      %s\n",
 		    inds[i].id, inds[i].xref, inds[i].posn.x, inds[i].posn.y,
 		    inds[i].gens, inds[i].name);
 	}
@@ -827,7 +827,7 @@ int read_textfile()
 
     if (textfile == NULL)
     {
-	fprintf(stderr, "%s: can't read %s\n", progname, filename);
+	fprintf(stderr, "%s: can't read '%s'\n", progname, filename);
 	return GPDF_ERROR;
     }
 
