@@ -61,6 +61,8 @@ int gens = 0;
 int indindex = 1;
 int famindex = 1;
 
+int slotmax = 0;
+
 bool writetext = false;
 bool readtext = false;
 bool boldnames = false;
@@ -662,15 +664,12 @@ int find_generations()
 
     for (int i = 1; i < indindex; i++)
     {
-	bool debug;
+	bool debug = false;
 
 	if (inds[i].id > 0)
 	{
-	    if (strcmp(inds[i].xref, "I2") == 0)
-	    	debug = true;
-
-	    else
-	    	debug = false;
+	    // if (strcmp(inds[i].xref, "I2") == 0)
+	    // 	debug = true;
 
 	    // If they have parents
 
@@ -792,7 +791,7 @@ int write_textfile()
     {
 	if (inds[i].id > 0)
 	{
-	    fprintf(textfile, "%4d  %-4s %2.0f %2.1f    %2d      %s\n",
+	    fprintf(textfile, "%4d  %-4s %2.0f %3.1f    %2d      %s\n",
 		    inds[i].id, inds[i].xref, inds[i].posn.x, inds[i].posn.y,
 		    inds[i].gens, inds[i].name);
 	}
@@ -810,6 +809,7 @@ int read_textfile()
     char *linep = line;
     size_t size = sizeof(line);
     FILE *textfile;
+    float slots = 0;
 
     if (readtext)
     {
@@ -850,11 +850,16 @@ int read_textfile()
 	    {
 		inds[id].posn.x = x;
 		inds[id].posn.y = y;
+
+		if (slots < y)
+		    slots = y;
 	    }
 	}
     }
 
     fclose(textfile);
+
+    slotmax = slots;
 
     return GPDF_SUCCESS;
 }
@@ -887,7 +892,7 @@ int draw_individuals(HPDF_Page page, HPDF_Font font, HPDF_Font bold,
 	{
 	    // Check the position
 
-	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
+	    if (inds[i].posn.y > 0)
 	    {
 		float x = (SIZE_MARGIN + (SIZE_INSET * 2)) +
 		    (inds[i].posn.x * slotwidth);
@@ -1140,7 +1145,7 @@ int draw_family_lines(HPDF_Page page, float height,
     {
 	if (inds[i].id > 0)
 	{
-	    if ((inds[i].posn.x > 0) || (inds[i].posn.y > 0))
+	    if (inds[i].posn.y > 0)
 	    {
 		float x = (SIZE_MARGIN + (SIZE_INSET * 2)) +
 		    (inds[i].posn.x * slotwidth);
@@ -1169,7 +1174,7 @@ int draw_family_lines(HPDF_Page page, float height,
     for (int i = 1; i < SIZE_FAMS; i++)
     {
 	if ((fams[i].wife != NULL) &&
-	    ((fams[i].wife->posn.x > 0) || (fams[i].wife->posn.y > 0)))
+	    (fams[i].wife->posn.y > 0))
 	{
 	    float wx = (SIZE_MARGIN + SIZE_INSET) +
 		(fams[i].wife->posn.x * slotwidth);
@@ -1179,8 +1184,7 @@ int draw_family_lines(HPDF_Page page, float height,
 	    for (int j = 1; j < SIZE_CHLN; j++)
 	    {
 		if ((fams[i].chil[j] != NULL) &&
-		    ((fams[i].chil[j]->posn.x > 0) ||
-		     (fams[i].chil[j]->posn.y > 0)))
+		    (fams[i].chil[j]->posn.y > 0))
 		{
 		    float cx = (SIZE_MARGIN + SIZE_INSET) + slotwidth +
 			(fams[i].chil[j]->posn.x * slotwidth);
@@ -1197,7 +1201,7 @@ int draw_family_lines(HPDF_Page page, float height,
 	// Draw lines from husband to children
 
 	if ((fams[i].husb != NULL) &&
-	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
+	    (fams[i].husb->posn.y > 0))
 	{
 	    float hx = (SIZE_MARGIN + SIZE_INSET) +
 		(fams[i].husb->posn.x * slotwidth);
@@ -1207,8 +1211,7 @@ int draw_family_lines(HPDF_Page page, float height,
 	    for (int j = 1; j < SIZE_CHLN; j++)
 	    {
 		if ((fams[i].chil[j] != NULL) &&
-		    ((fams[i].chil[j]->posn.x > 0) ||
-		     (fams[i].chil[j]->posn.y > 0)))
+		     (fams[i].chil[j]->posn.y > 0))
 		{
 		    float cx = (SIZE_MARGIN + SIZE_INSET) + slotwidth +
 			(fams[i].chil[j]->posn.x * slotwidth);
@@ -1225,8 +1228,8 @@ int draw_family_lines(HPDF_Page page, float height,
 	// Draw lines from wife to husband
 
 	if ((fams[i].wife != NULL) && (fams[i].husb != NULL) &&
-	    ((fams[i].wife->posn.x > 0) || (fams[i].wife->posn.y > 0)) &&
-	    ((fams[i].husb->posn.x > 0) || (fams[i].husb->posn.y > 0)))
+	    (fams[i].wife->posn.y > 0) &&
+	    (fams[i].husb->posn.y > 0))
 	{
 	    float wx = (SIZE_MARGIN + SIZE_INSET) +
 		(fams[i].wife->posn.x * slotwidth);
@@ -1365,7 +1368,8 @@ int draw_pdf()
 			  SIZE_MARGIN + 5, title);
 	HPDF_Page_EndText(page);
 
-	float slotheight = fontsize * 6;
+	float slotheight = (height - (SIZE_MARGIN * 2)) / (slotmax + 1);
+
 	float slotwidth = (width - (SIZE_MARGIN * 2) -
 			   (SIZE_INSET * 2)) / (gens + 1);
 
