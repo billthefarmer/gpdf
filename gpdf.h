@@ -143,6 +143,7 @@ typedef struct fam_s
 
 int parse_gedcom_file(char *);
 int find_generations();
+int read_textfile();
 int write_textfile();
 int draw_pdf();
 int object(char *, char *);

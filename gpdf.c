@@ -62,9 +62,12 @@ int indindex = 1;
 int famindex = 1;
 
 bool writetext = false;
+bool readtext = false;
 bool boldnames = false;
 
 char file[SIZE_NAME];
+char text[SIZE_NAME];
+
 char *progname;
 
 float fontsize = SIZE_FONT;
@@ -86,7 +89,7 @@ int main(int argc, char *argv[])
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "wf:p:")) != -1)
+    while ((c = getopt(argc, argv, "bwr:f:p:")) != -1)
     {
 	switch (c)
 	{
@@ -96,6 +99,11 @@ int main(int argc, char *argv[])
 
 	case 'w':
 	    writetext = true;
+	    break;
+
+	case 'r':
+	    readtext = true;
+	    strncpy(text, optarg, sizeof(read) - 1);
 	    break;
 
 	case 'f':
@@ -141,6 +149,7 @@ int main(int argc, char *argv[])
 		"Usage: %s [-w] [-p pagesize] [-f fontsize] <infile>\n\n",
 		progname);
 	fprintf(stderr, "  -w - write text file and layout page\n");
+	fprintf(stderr, "  -r - read text file before write\n");
 	// fprintf(stderr, "  -b - surnames in bold text\n");
 	fprintf(stderr, "  -p - set page size A0 -- A4\n");
 	fprintf(stderr, "  -f - set font size in points (1/72 inch)\n");
@@ -163,6 +172,11 @@ int main(int argc, char *argv[])
     // Find generations in data
 
     find_generations();
+
+    // If reading text file
+
+    if (readtext)
+	read_textfile();
 
     // If writing text file
 
@@ -730,9 +744,9 @@ int find_generations()
 		    inds[i].gens = inds[i].famc->husb->gens - 1;
 	    }
 
-    	    // Calculate x position on page
+	    // Calculate x position on page
 
-    	    inds[i].posn.x = inds[i].gens;
+	    inds[i].posn.x = inds[i].gens;
 	}
     }
 
@@ -778,8 +792,9 @@ int write_textfile()
     {
 	if (inds[i].id > 0)
 	{
-	    fprintf(textfile, "%4d  %-4s  0  0     %2.0f      %s\n",
-		    inds[i].id, inds[i].xref, inds[i].posn.x, inds[i].name);
+	    fprintf(textfile, "%4d  %-4s %2.0f %2.1f    %2d      %s\n",
+		    inds[i].id, inds[i].xref, inds[i].posn.x, inds[i].posn.y,
+		    inds[i].gens, inds[i].name);
 	}
     }
 
@@ -790,14 +805,23 @@ int write_textfile()
 
 int read_textfile()
 {
-    char filename[SIZE_LINE];
+    char filename[SIZE_NAME];
     char line[SIZE_LINE];
     char *linep = line;
     size_t size = sizeof(line);
     FILE *textfile;
 
-    strcpy(filename, file);
-    strcat(filename, ".txt");
+    if (readtext)
+    {
+	strcpy(filename, text);
+	readtext = false;
+    }
+
+    else
+    {
+	strcpy(filename, file);
+	strcat(filename, ".txt");
+    }
 
     textfile = fopen(filename, "r");
 
