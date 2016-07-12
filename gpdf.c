@@ -614,53 +614,62 @@ int additn(char *first, char *second)
     return GPDF_SUCCESS;
 }
 
+void traverse(faml *famp, int n, bool debug)
+{
+    if (famp != NULL)
+    {
+	if (famp->wife != NULL)
+	{
+	    if (famp->wife->gens < n)
+		famp->wife->gens = n;
+
+	    traverse(famp->wife->famc, n + 1, debug);
+
+	    if (debug)
+		printf("INDI: %s, GENS: %d\n", famp->wife->name, n);
+	}
+
+	if (famp->husb != NULL)
+	{
+	    if (famp->husb->gens < n)
+		famp->husb->gens = n;
+
+	    traverse(famp->husb->famc, n + 1, debug);
+
+	    if (debug)
+		printf("INDI: %s, GENS: %d\n", famp->husb->name, n);
+	}
+    }
+}
+
 int find_generations()
 {
     // Iterate through the individuals
 
     for (int i = 1; i < indindex; i++)
     {
+	bool debug;
+
 	if (inds[i].id > 0)
 	{
+	    if (strcmp(inds[i].xref, "I2") == 0)
+	    	debug = true;
+
+	    else
+	    	debug = false;
+
 	    // If they have parents
 
 	    if (inds[i].famc != NULL)
-	    {
-		int n = 0;
-		faml *famp = inds[i].famc;
+		traverse(inds[i].famc, 1, debug);
 
-		// Follow the links
+	    // Remember generations
 
-		while (famp != NULL)
-		{
-		    // Husband
+	    if (gens < inds[i].gens)
+	    	gens = inds[i].gens;
 
-		    if ((famp->husb != NULL) &&
-			(famp->husb->famc != NULL))
-			famp = famp->husb->famc;
-
-		    // Wife
-
-		    else if (famp->wife != NULL)
-			famp = famp->wife->famc;
-
-		    // Give up
-
-		    else
-			famp = NULL;
-
-		    // Count the generations
-
-		    n++;
-		}
-
-		inds[i].gens = n;
-
-		// Remember generations
-
-		if (gens < n)
-		    gens = n;
-	    }
+	    if (debug)
+		printf("INDI: %s, GENS: %d\n", inds[i].name, inds[i].gens);
 	}
     }
 
@@ -668,39 +677,62 @@ int find_generations()
 
     for (int i = 1; i < indindex; i++)
     {
-	if (inds[i].id > 0)
-	{
-	    // If male
+    	if (inds[i].id > 0)
+    	{
+    	    // If male
 
-	    if (inds[i].sex[0] == 'M')
+    	    if (inds[i].sex[0] == 'M')
+    	    {
+    		// See if a wife has more generations
+
+    		for (int j = 0; j < SIZE_FMSS; j++)
+    		{
+    		    if ((inds[i].fams[j] != NULL) &&
+    			(inds[i].fams[j]->wife != NULL) &&
+    			(inds[i].fams[j]->wife->gens > inds[i].gens))
+    			inds[i].gens = inds[i].fams[j]->wife->gens;
+    		}
+    	    }
+
+    	    else
+    	    {
+    		// See if a husband has more generations
+
+    		for (int j = 0; j < SIZE_FMSS; j++)
+    		{
+    		    if ((inds[i].fams[j] != NULL) &&
+    			(inds[i].fams[j]->husb != NULL) &&
+    			(inds[i].fams[j]->husb->gens > inds[i].gens))
+    			inds[i].gens = inds[i].fams[j]->husb->gens;
+    		}
+    	    }
+    	}
+    }
+
+    // Iterate through the individuals
+
+    for (int i = 1; i < indindex; i++)
+    {
+    	if (inds[i].id > 0)
+    	{
+	    if (inds[i].famc != NULL)
 	    {
-		// See if a wife has more generations
+		// Check mother
 
-		for (int j = 0; j < SIZE_FMSS; j++)
-		{
-		    if ((inds[i].fams[j] != NULL) &&
-			(inds[i].fams[j]->wife != NULL) &&
-			(inds[i].fams[j]->wife->gens > inds[i].gens))
-			inds[i].gens = inds[i].fams[j]->wife->gens;
-		}
+		if ((inds[i].famc->wife != NULL) &&
+		    (inds[i].gens < inds[i].famc->wife->gens - 1))
+		    inds[i].gens = inds[i].famc->wife->gens - 1;
+
+		// Check father
+
+		if ((inds[i].famc->husb != NULL) &&
+		    (inds[i].gens < inds[i].famc->husb->gens - 1))
+		    inds[i].gens = inds[i].famc->husb->gens - 1;
 	    }
 
-	    else
-	    {
-		// See if a husband has more generations
+    	    // Calculate x position on page
 
-		for (int j = 0; j < SIZE_FMSS; j++)
-		{
-		    if ((inds[i].fams[j] != NULL) &&
-			(inds[i].fams[j]->husb != NULL) &&
-			(inds[i].fams[j]->husb->gens > inds[i].gens))
-			inds[i].gens = inds[i].fams[j]->husb->gens;
-		}
-	    }
-
-	    // Calculate x position on page
-
-	    inds[i].posn.x = gens - inds[i].gens;
+    	    inds[i].posn.x = inds[i].gens;
 	}
     }
 
