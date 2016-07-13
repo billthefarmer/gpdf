@@ -148,7 +148,8 @@ int main(int argc, char *argv[])
     if (argv[optind] == NULL)
     {
 	fprintf(stderr,
-		"Usage: %s [-w] [-p pagesize] [-f fontsize] <infile>\n\n",
+		"Usage: %s [-w] [-r <textfile>] [-p pagesize] "
+		"[-f fontsize] <infile>\n\n",
 		progname);
 	fprintf(stderr, "  -w - write text file and layout page\n");
 	fprintf(stderr, "  -r - read text file before write\n");
