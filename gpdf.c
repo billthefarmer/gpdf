@@ -771,11 +771,10 @@ int write_textfile()
 
     if (textfile != NULL)
     {
+	fclose(textfile);
 	fprintf(stderr, "%s: Not overwriting '%s'\n", progname, filename);
 	return GPDF_SUCCESS;
     }
-
-    fclose(textfile);
 
     textfile = fopen(filename, "w");
 #endif
