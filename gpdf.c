@@ -693,6 +693,33 @@ int find_generations()
     {
     	if (inds[i].id > 0)
     	{
+	    if (inds[i].famc != NULL)
+	    {
+		// Check mother
+
+		if ((inds[i].famc->wife != NULL) &&
+		    (inds[i].gens < inds[i].famc->wife->gens - 1))
+		    inds[i].gens = inds[i].famc->wife->gens - 1;
+
+		// Check father
+
+		if ((inds[i].famc->husb != NULL) &&
+		    (inds[i].gens < inds[i].famc->husb->gens - 1))
+		    inds[i].gens = inds[i].famc->husb->gens - 1;
+	    }
+
+	    // Calculate x position on page
+
+	    inds[i].posn.x = inds[i].gens;
+	}
+    }
+
+    // Iterate through the individuals
+
+    for (int i = 1; i < indindex; i++)
+    {
+    	if (inds[i].id > 0)
+    	{
     	    // If male
 
     	    if (inds[i].sex[0] == 'M')
@@ -721,33 +748,6 @@ int find_generations()
     		}
     	    }
     	}
-    }
-
-    // Iterate through the individuals
-
-    for (int i = 1; i < indindex; i++)
-    {
-    	if (inds[i].id > 0)
-    	{
-	    if (inds[i].famc != NULL)
-	    {
-		// Check mother
-
-		if ((inds[i].famc->wife != NULL) &&
-		    (inds[i].gens < inds[i].famc->wife->gens - 1))
-		    inds[i].gens = inds[i].famc->wife->gens - 1;
-
-		// Check father
-
-		if ((inds[i].famc->husb != NULL) &&
-		    (inds[i].gens < inds[i].famc->husb->gens - 1))
-		    inds[i].gens = inds[i].famc->husb->gens - 1;
-	    }
-
-	    // Calculate x position on page
-
-	    inds[i].posn.x = inds[i].gens;
-	}
     }
 
     return GPDF_SUCCESS;
