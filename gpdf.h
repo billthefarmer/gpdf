@@ -43,6 +43,7 @@ typedef enum
      SIZE_NICK = 16,
      SIZE_DATE = 16,
      SIZE_CHLN = 16,
+     SIZE_GENS = 16,
      SIZE_FMSS = 4,
      SIZE_SEX  = 4}
     gpdf_size_t;

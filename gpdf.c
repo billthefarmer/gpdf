@@ -45,6 +45,8 @@ static const double multiplier = 72.0 / 25.4;
 indi inds[SIZE_INDS] = {};
 faml fams[SIZE_FAMS] = {};
 
+int genc[SIZE_GENS] = {};
+
 indi *indp;
 faml *famp;
 
@@ -750,6 +752,16 @@ int find_generations()
     	}
     }
 
+    // Iterate through the individuals
+
+    for (int i = 1; i < indindex; i++)
+    {
+    	if (inds[i].id > 0)
+
+	    // Increment generation count
+	    genc[inds[i].gens]++;
+    }
+
     return GPDF_SUCCESS;
 }
 
@@ -812,10 +824,7 @@ int read_textfile()
     float slots = 0;
 
     if (readtext)
-    {
 	strcpy(filename, text);
-	readtext = false;
-    }
 
     else
     {
