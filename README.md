@@ -81,8 +81,6 @@ one generation containing 18 individuals. It would be possible to fit
 more people on an A3 page, but doing it without the lines crossing
 becomes more difficult.
 
-![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/whatamess.png)
+![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/smith.png)
 
-If you change the algorithm for resolving GEDCOM xrefs half way
-through the development process you can produce a wonderful mess. All
-these lines are correct, it's just the people are in the wrong places.
+This is an anonymised tree with 108 individuals and 11 generations.
