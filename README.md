@@ -76,11 +76,9 @@ chart.
 
 You can do test runs with only a few positions filled in to see what
 it looks like. Individuals with two zeros for the position won't
-appear. The tree below has eight generations and 70 individuals, with
+appear. The tree below has eleven generations and 108 individuals, with
 one generation containing 18 individuals. It would be possible to fit
 more people on an A3 page, but doing it without the lines crossing
 becomes more difficult.
 
 ![](https://github.com/billthefarmer/billthefarmer.github.io/raw/master/images/gpdf/smith.png)
-
-This is an anonymised tree with 108 individuals and 11 generations.
