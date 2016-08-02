@@ -280,12 +280,12 @@ int parse_gedcom_file(char *filename)
 	    status = object(first, second);
 	    break;
 
-	case TYPE_ATTR:
-	    status = attrib(first, second);
+	case TYPE_PROP:
+	    status = property(first, second);
 	    break;
 
-	case TYPE_ADDN:
-	    status = additn(first, second);
+	case TYPE_ATTR:
+	    status = attrib(first, second);
 	    break;
 	}
 
@@ -362,7 +362,7 @@ int object(char *first, char *second)
     return GPDF_SUCCESS;
 }
 
-int attrib(char *first, char *second)
+int property(char *first, char *second)
 {
     switch (state)
     {
@@ -541,7 +541,7 @@ int attrib(char *first, char *second)
     return GPDF_SUCCESS;
 }
 
-int additn(char *first, char *second)
+int attrib(char *first, char *second)
 {
     switch (state)
     {

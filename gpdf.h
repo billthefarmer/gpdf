@@ -70,8 +70,8 @@ typedef enum
 
 typedef enum
     {TYPE_OBJECT,
-     TYPE_ATTR,
-     TYPE_ADDN}
+     TYPE_PROP,
+     TYPE_ATTR}
     gpdf_type_t;
 
 typedef enum
@@ -148,8 +148,8 @@ int read_textfile();
 int write_textfile();
 int draw_pdf();
 int object(char *, char *);
+int property(char *, char *);
 int attrib(char *, char *);
-int additn(char *, char *);
 
 #ifdef __MINGW32__
 int getline(char **, size_t *, FILE *);
