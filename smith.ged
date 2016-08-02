@@ -50,7 +50,7 @@
 2 _WT_USER jane
 1 FAMS @F28@
 0 @I100@ INDI
-1 NAME Jane /Smith/
+1 NAME Jane //
 2 GIVN Jane
 2 SURN Smith
 1 SEX F
@@ -77,7 +77,7 @@
 3 TIME 14:10:57
 2 _WT_USER jane
 0 @I102@ INDI
-1 NAME Jane /Smith/
+1 NAME Jane //
 2 GIVN Jane
 2 SURN Smith
 1 SEX F
@@ -134,7 +134,7 @@
 3 TIME 14:17:05
 2 _WT_USER jane
 0 @I106@ INDI
-1 NAME Jane /Smith/
+1 NAME Jane //
 2 GIVN Jane
 2 SURN Smith
 1 SEX F
@@ -148,7 +148,7 @@
 3 TIME 14:18:13
 2 _WT_USER jane
 0 @I107@ INDI
-1 NAME Jane /Smith/
+1 NAME Jane //
 2 GIVN Jane
 2 SURN Smith
 1 SEX F
