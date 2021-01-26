@@ -1,0 +1,53 @@
+on:
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: "actions/checkout@v2"
+      - name: Install libharu
+        run: |
+          git clone -b 2_3 https://github.com/libharu/libharu.git libharu
+          cd libharu
+          ./buildconf.sh --force
+          ./configure
+          make
+          sudo make install
+          cd ..
+      - name: Build
+        run: |
+          make
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: gpdf
+          path: gpdf
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: "actions/checkout@v2"
+      - name: Install libharu
+        run: |
+          git clone -b 2_3 https://github.com/libharu/libharu.git libharu
+          cd libharu
+          ./buildconf.sh --force
+          ./configure
+          make
+          sudo make install
+          cd ..
+      - name: Build
+        run: |
+          make
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: gpdf
+          path: gpdf
