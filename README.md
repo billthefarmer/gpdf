@@ -9,7 +9,7 @@ software. It has also been tested with the allged.ged test file which
 contains masses of data which is ignored.
 
 The [GEDCOM parser library](http://gedcom-parse.sourceforge.net)
-initiall tried would only successfuly build on 32 bit
+initially tried would only successfully build on 32 bit
 linux. [GHOSTS](http://www.nongnu.org/ghosts/users/index.html)
 produced similar results. So the parser was written as part of the
 program, as the GEDCOM format is almost self documenting once
